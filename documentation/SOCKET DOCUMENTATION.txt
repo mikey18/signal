@@ -1,0 +1,141 @@
+UPDATED MESSAGES 
+
+CLIENT ACTION
+
+To connect to socket client 
+
+ws://localhost:8000/ws/check/premium/?your_auth_token_here
+
+To initialize data streaming:
+{
+   "msg":"ping"
+}
+
+
+To stop data streaming:
+{
+   "msg":"stop"
+}
+
+
+
+1. first response when connected
+   
+   {
+      "status": True,
+      "message": "You are now receiving messages",
+      "symbols": [
+         "XAUUSD",
+         "EURUSD",  #it can be any amount of symbols, it is not fixed
+      ]
+   }
+   Note: this response will be pushed once
+
+2. if there"s already an open trade you will get this message every (1) second till trade closes
+   
+   {
+      "status": True,
+      "message": "active trade in progress",
+      "data": {
+         "symbol": e.g XAUUSD (char),
+         "trade_type": e.g "BUY" or "SELL",
+         "stop_loss": e.g 2.344 (float),
+         "take_profit": e.g 2.344 (float),
+         "open_price": e.g 2.344 (float),
+         "lot_size": e.g 0.5 (float),
+         "curent_price": e.g 2.344 (float)
+      }
+   }
+
+2.1. If the trade closes you get this message once
+
+   {
+      "status": True,
+      "message": "Trade completed",
+      "data": {
+         "symbol": e.g XAUUSD (char),
+         "result": # trade_status will be either "profit" or "loss" (char)
+         "current_phase": e.g 1, # (int)
+         "current_step": e.g 1, # (int)
+         "lot_size": lot_size, # (float)
+         "stop_loss": stop_loss, # (float)
+         "take_profit": take_profit, # (float)
+         "new_account_balance": new_balance # (float)
+      }
+   }
+
+
+3. if there"s no open trade it starts checking for signals every 60 seconds
+
+   {
+      "status": False,
+      "message": "checking for signal..."
+      "data": {
+         "symbol": e.g XAUUSD (char),
+      }
+   }
+
+4. if there"s it gets a signal it sends this message once
+
+   {
+      "status": True,
+      "message": e.g "BUY" or "SELL",
+      "data": {
+         "symbol": e.g XAUUSD (char),
+      }
+   }
+
+5. it then places trade and send this message once 
+
+   {
+      "status": True,
+      "message": e.g "A signal was received and trade has been placed",
+      "data": {
+         "symbol": e.g XAUUSD (char),
+      }
+   }
+
+
+6. Then it send this message every (1) second that the trade is active
+
+   {
+      "status": True,
+      "message": "active trade in progress",
+      "data": {
+         "symbol": e.g XAUUSD (char),
+         "trade_type": e.g "BUY" or "SELL",
+         "stop_loss": e.g 2.344 (float),
+         "take_profit": e.g 2.344 (float),
+         "open_price": e.g 2.344 (float),
+         "lot_size": e.g 0.5 (float),
+         "curent_price": e.g 2.344 (float)
+      }
+  }
+
+7. When the trade closes it sends the message once 
+
+   {
+      "status": True,
+      "message": "Trade completed",
+      "data": {
+         "symbol": e.g XAUUSD (char),
+         "result": # trade_status will be either "profit" or "loss" (char)
+         "current_phase": e.g 1, # (int)
+         "current_step": e.g 1, # (int)
+         "lot_size": lot_size, # (float)
+         "stop_loss": stop_loss, # (float)
+         "take_profit": take_profit, # (float)
+         "new_account_balance": new_balance # (float)
+      }
+   }
+
+
+Then it starts over
+
+
+
+
+
+
+
+

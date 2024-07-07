@@ -1,0 +1,5 @@
+venv
+# Ignore environment variables file
+.env
+serviceAccountKey.json
+google-credentials.json
