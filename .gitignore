@@ -3,3 +3,6 @@ venv
 .env
 serviceAccountKey.json
 google-credentials.json
+
+db.sqlite3
+db2.sqlite3
