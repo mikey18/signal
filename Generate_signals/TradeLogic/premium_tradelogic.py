@@ -214,7 +214,7 @@ class Premium_Trade:
             asyncio.create_task(send_notification_async(
                 user_id=user.id,
                 title="Trade placed",
-                body="A signal was received and trade has been placed"
+                body=f"Signal was received and trade has been placed - {self.symbol}"
             ))
 
         await self.login_to_mt5(
@@ -257,7 +257,7 @@ class Premium_Trade:
                 asyncio.create_task(send_notification_async(
                     user_id=self.user_id,
                     title="Trade placed",
-                    body="A signal was received and trade has been placed"
+                    body=f"Signal was received and trade has been placed - {self.symbol}"
                 ))
                 # send notification
                 
@@ -266,7 +266,7 @@ class Premium_Trade:
                     {
                         "type": "trade.format",
                         "status": True,
-                        "message": "A signal was received and trade has been placed",
+                        "message": "Signal was received and trade has been placed",
                         "data": {
                             "symbol": self.symbol,
                         }
