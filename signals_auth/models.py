@@ -110,6 +110,12 @@ class TradingPair(models.TextChoices):
     QCOM = 'QCOM', 'Qualcomm Incorporated'
     BKNG = 'BKNG', 'Booking Holdings Inc.'
 
+    # CRYPTO CURRENCY
+    BTC_USD = 'BTCUSD', 'Bitcoin/US Dollar'
+    ETH_USD = 'ETHUSD', 'Ethereum/US Dollar'
+
+
+
 class TimeFrame(models.TextChoices):
     # TICK = 'tick', 'Tick'
     SECOND_1 = '1s', '1 Second'
