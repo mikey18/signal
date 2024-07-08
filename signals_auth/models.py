@@ -90,10 +90,10 @@ class TradingPair(models.TextChoices):
 
     # NASDAQ
     NASDAQ_COMPOSITE = '^IXIC', 'NASDAQ Composite Index'
-    NASDAQ_100 = 'ND100m', 'NASDAQ-100 Index'
-    AAPL = 'AAPL', 'Apple Inc.'
+    NASDAQ_100 = 'NAS100', 'NASDAQ-100 Index'
+    AAPL = 'AAPL.US', 'Apple Inc.'
     MSFT = 'MSFT', 'Microsoft Corporation'
-    AMZN = 'AMZN', 'Amazon.com Inc.'
+    AMZN = 'AMZN.US', 'Amazon.com Inc.'
     GOOGL = 'GOOGL', 'Alphabet Inc. (Class A)'
     FB = 'FB', 'Meta Platforms Inc. (formerly Facebook)'
     NVDA = 'NVDA', 'NVIDIA Corporation'
