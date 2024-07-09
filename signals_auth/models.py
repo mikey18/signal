@@ -129,6 +129,14 @@ class TimeFrame(models.TextChoices):
     WEEK_1 = '1w', '1 Week'
     MONTH_1 = '1mo', '1 Month'
 
+class TradingPairTypes(models.TextChoices):
+    CURRENCY = 'currency', 'currency'
+    STOCKS = 'stocks', 'stocks'
+    CRYPTOCURRENCY = 'cryptocurrency', 'cryptocurrency'
+    FUTURES = 'futures', 'futures'
+    METALS = 'metals', 'metals'
+
+
 class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
     first_name = models.CharField(max_length=120)
@@ -172,6 +180,7 @@ class MT5Account_Symbols(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     account = models.ForeignKey(MT5Account, on_delete=models.CASCADE)
     pair = models.CharField(max_length=100, choices=TradingPair.choices, verbose_name='Trading Pair', blank=True)
+    type = models.CharField(max_length=100, choices=TradingPairTypes.choices, verbose_name='Trading Pair types', blank=True)
     group_name = models.CharField(max_length=150, blank=True, null=True)
     active = models.BooleanField(default=True)
 

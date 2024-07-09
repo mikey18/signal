@@ -1,0 +1,26 @@
+COMM COMM
+
+login: 82288340
+
+password: H@W6ZaSa
+
+server: MetaQuotes-Demo
+
+
+
+signals signals
+
+login: 10003376634
+
+password: 3t+xAuQi
+
+server: MetaQuotes-Demo
+
+
+dk dk
+
+login: 859477
+
+password: J*Z6EuUr
+
+server: DKInternational-Demo

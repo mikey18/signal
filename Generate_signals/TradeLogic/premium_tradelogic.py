@@ -9,9 +9,7 @@ from channels.layers import get_channel_layer
 from functions.notifications import send_notification_async
 from Generate_signals.models import Trade_History
 from signals_auth.models import MT5Account
-# import atexit
 logger = logging.getLogger(__name__)
-
 
 class Premium_Trade:
     def __init__(self):
@@ -177,7 +175,7 @@ class Premium_Trade:
                 "tp": tp,
                 "price": price,
                 # "price": await self.get_price(symbol, trade_type),
-                "deviation": 100,
+                "deviation": 200,
                 "magic": 123456,
                 "type": mt5.ORDER_TYPE_BUY if trade_type == "BUY" else mt5.ORDER_TYPE_SELL,
                 "type_filling": mt5.ORDER_FILLING_FOK,
@@ -238,44 +236,44 @@ class Premium_Trade:
         condition = data["condition"]
         price=data["price"]
 
-        while True:
-            logger.info(f"Placing trade - {symbol}")
-            master_result = await self.place_trade(symbol, volume, sl, tp, condition, price)
-            logger.info(master_result)
-            if master_result.retcode != mt5.TRADE_RETCODE_DONE:
-                logger.info(f"trade couldn't place - {symbol} | comment - {master_result.comment} | reetcode - {master_result.retcode}")
-                if master_result.retcode == mt5.TRADE_RETCODE_TRADE_DISABLED or master_result.retcode == mt5.TRADE_RETCODE_PRICE_OFF:
-                    return {"status": "error", "retcode": master_result.retcode, "message": master_result.comment}
-                else:
-                    continue
-            else:
-                logger.info(f"trade placed - {symbol}")
-                # THIS IS ON HOLD
-                # slave_accounts_trade = await self.place_trade_slave_accounts(symbol, condition, price, master_result)
-                # THIS IS ON HOLD
-                # # send notification
-                asyncio.create_task(send_notification_async(
-                    user_id=self.user_id,
-                    title="Trade placed",
-                    body=f"Signal was received and trade has been placed - {self.symbol}"
-                ))
-                # send notification
-                
-                await self.channel_layer.group_send(
-                    self.room,
-                    {
-                        "type": "trade.format",
-                        "status": True,
-                        "message": "Signal was received and trade has been placed",
-                        "data": {
-                            "symbol": self.symbol,
-                        }
+        # while True:
+        logger.info(f"Placing trade - {symbol}")
+        master_result = await self.place_trade(symbol, volume, sl, tp, condition, price)
+        logger.info(master_result)
+        if master_result.retcode != mt5.TRADE_RETCODE_DONE:
+            logger.info(f"trade couldn't place - {symbol} | comment - {master_result.comment} | reetcode - {master_result.retcode}")
+            # if master_result.retcode == mt5.TRADE_RETCODE_TRADE_DISABLED or master_result.retcode == mt5.TRADE_RETCODE_PRICE_OFF:
+            return {"status": "error", "retcode": master_result.retcode, "message": master_result.comment}
+            # else:
+            #     continue
+        else:
+            logger.info(f"trade placed - {symbol}")
+            # THIS IS ON HOLD
+            # slave_accounts_trade = await self.place_trade_slave_accounts(symbol, condition, price, master_result)
+            # THIS IS ON HOLD
+            # # send notification
+            asyncio.create_task(send_notification_async(
+                user_id=self.user_id,
+                title="Trade placed",
+                body=f"Signal was received and trade has been placed - {self.symbol}"
+            ))
+            # send notification
+            
+            await self.channel_layer.group_send(
+                self.room,
+                {
+                    "type": "trade.format",
+                    "status": True,
+                    "message": "Signal was received and trade has been placed",
+                    "data": {
+                        "symbol": self.symbol,
                     }
-                )
-                closed_trade = await self.wait_for_trade_close(master_result.order)
-                if closed_trade:
-                    trade_status = await self.check_profit_or_loss(self.initial_balance)
-                    return {"status": "success", "order": master_result.order, "retcode": master_result.retcode, "trade_status": trade_status}
+                }
+            )
+            closed_trade = await self.wait_for_trade_close(master_result.order)
+            if closed_trade:
+                trade_status = await self.check_profit_or_loss(self.initial_balance)
+                return {"status": "success", "order": master_result.order, "retcode": master_result.retcode, "trade_status": trade_status}
 
                 # THIS IS ON HOLD
                 # if slave_accounts_trade["status"] == "success":
@@ -294,6 +292,36 @@ class Premium_Trade:
     async def convert_pips_to_price(self, price, pips, point):
         return price + (pips * point)
     
+    async def calculate_initial_lot_size(self, balance):
+        risk = 0.001 
+        stop_loss_pips = 250  
+        self.initial_balance = balance
+        money_to_risk = self.initial_balance * risk
+
+        if type(money_to_risk) is int:
+            initial_lot_size = round((money_to_risk / stop_loss_pips), 1)
+            return initial_lot_size
+        elif type(money_to_risk) is float:
+            calculation = money_to_risk / stop_loss_pips
+            if calculation < 0.01:
+                initial_lot_size = 0.01
+                return initial_lot_size
+            else:
+                initial_lot_size = await self.convert_to_two_decimal_places(calculation)
+                return initial_lot_size
+    
+    async def PHASES_DATA(self):
+        initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)
+        logger.info(initial_lot_size)
+        phases = {
+            phase: [(phase * initial_lot_size, 250, 750), 
+                    (phase * initial_lot_size, 250, 750), 
+                    (phase * initial_lot_size, 500, 1500), 
+                    (phase * initial_lot_size, 1000, 3000)]
+            for phase in range(1, 13)
+        }
+        return phases
+
     async def get_sl_tp_lot_size(self, condition, price):
         # Get the lot size, stop loss, and take profit for the current phase and step
         phases = await self.PHASES_DATA()
@@ -376,36 +404,6 @@ class Premium_Trade:
                 #     self.current_step = 0
             else:
                 self.current_step = 0
-
-    async def calculate_initial_lot_size(self, balance):
-        risk = 0.001 
-        stop_loss_pips = 250  
-        self.initial_balance = balance
-        money_to_risk = self.initial_balance * risk
-
-        if type(money_to_risk) is int:
-            initial_lot_size = round((money_to_risk / stop_loss_pips), 1)
-            return initial_lot_size
-        elif type(money_to_risk) is float:
-            calculation = money_to_risk / stop_loss_pips
-            if calculation < 0.01:
-                initial_lot_size = 0.01
-                return initial_lot_size
-            else:
-                initial_lot_size = await self.convert_to_two_decimal_places(calculation)
-                return initial_lot_size
-    
-    async def PHASES_DATA(self):
-        initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)
-        logger.info(initial_lot_size)
-        phases = {
-            phase: [(phase * initial_lot_size, 250, 750), 
-                    (phase * initial_lot_size, 250, 750), 
-                    (phase * initial_lot_size, 500, 1500), 
-                    (phase * initial_lot_size, 1000, 3000)]
-            for phase in range(1, 13)
-        }
-        return phases
     
     async def shutdown_mt5():
         mt5.shutdown()
@@ -516,8 +514,8 @@ class Premium_Trade:
             #         await self.adjust_phases_and_steps(trade_status)
             # Checks if active trade was from signal server
             # Call the signal API
-            signal_response = await self.get_buy_or_sell_signal()
-            # signal_response = {"status": True, "condition":"BUY"}
+            # signal_response = await self.get_buy_or_sell_signal()
+            signal_response = {"status": True, "condition":"BUY"}
 
             # If the signal is not "buy" or "sell", skip this iteration
             if signal_response["status"] is False:
@@ -530,6 +528,7 @@ class Premium_Trade:
             
             # Calculate the stop loss and take profit prices
             sl, tp, lot_size = await self.get_sl_tp_lot_size(signal_response["condition"], price)
+            logger.info(f"price - {price} | sl - {sl} | tp - {tp} | lot size - {lot_size}")
 
             # Define the trade request
             trade_request = {
@@ -584,7 +583,7 @@ class Premium_Trade:
                     }
                 )
             else:
-                logger.info(f"trade couldn't place - {response['message']}")
+                # logger.info(f"trade couldn't place - {response['message']}")
                 await self.channel_layer.group_send(
                     self.room,
                     {
