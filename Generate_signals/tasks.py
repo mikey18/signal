@@ -6,9 +6,7 @@ import MetaTrader5 as mt5
 import logging
 import atexit
 from Generate_signals.models import MT5Account, MT5Account_Symbols
-from functions.notifications import send_notification_async
 logger = logging.getLogger(__name__)
-from asgiref.sync import async_to_sync
 
 
 def shutdown_mt5():
@@ -50,7 +48,6 @@ def start_mt5(**kwargs):
         logger.error(f"MT5 initialization failed")
         raise RuntimeError("MT5 initialization failed")    
     logger.info(f"MT5 initialized successfully")
-
     login = mt5.login(login=master_account.account, 
                     password=master_account.password, 
                     server=master_account.server.name)
