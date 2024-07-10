@@ -6,7 +6,7 @@ import MetaTrader5 as mt5
 import logging
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from functions.notifications import send_notification_async
+from functions.notifications import send_notification_sync
 from Generate_signals.models import Trade_History
 from signals_auth.models import MT5Account
 logger = logging.getLogger(__name__)
@@ -209,11 +209,11 @@ class Premium_Trade:
         for account in accounts:
             user = await database_sync_to_async(lambda: account.user)()
             await self.login_and_place_trade_slave(user, symbol, trade_type, price)
-            asyncio.create_task(send_notification_async(
+            send_notification_sync.delay(
                 user_id=user.id,
                 title="Trade placed",
                 body=f"Signal was received and trade has been placed - {self.symbol}"
-            ))
+            )
 
         await self.login_to_mt5(
             self.master_account,
@@ -252,11 +252,11 @@ class Premium_Trade:
             # slave_accounts_trade = await self.place_trade_slave_accounts(symbol, condition, price, master_result)
             # THIS IS ON HOLD
             # # send notification
-            asyncio.create_task(send_notification_async(
+            send_notification_sync.delay(
                 user_id=self.user_id,
                 title="Trade placed",
                 body=f"Signal was received and trade has been placed - {self.symbol}"
-            ))
+            )
             # send notification
             
             await self.channel_layer.group_send(

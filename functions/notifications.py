@@ -3,6 +3,7 @@ from fcm_django.models import FCMDevice
 from firebase_admin.messaging import (Message, 
                                       Notification, 
                                       send)
+from celery import shared_task
 
 # def send_notification_sync(**kwargs):
 #     try:
@@ -23,6 +24,7 @@ from firebase_admin.messaging import (Message,
 #     except Exception as e:
 #         print(e)
 
+@shared_task
 def send_notification_sync(**kwargs):
     try:
         devices = FCMDevice.objects.filter(user_id=kwargs.get("user_id"), active=True)
@@ -48,6 +50,7 @@ def send_notification_sync(**kwargs):
     except Exception as e:
         print(e)
 
+@shared_task
 async def send_notification_async(**kwargs):
     try:
         devices = await database_sync_to_async(list)(FCMDevice.objects.filter(user_id=kwargs.get("user_id"), active=True))

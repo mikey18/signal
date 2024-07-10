@@ -6,7 +6,9 @@ import MetaTrader5 as mt5
 import logging
 import atexit
 from Generate_signals.models import MT5Account, MT5Account_Symbols
+from functions.notifications import send_notification_async
 logger = logging.getLogger(__name__)
+from asgiref.sync import async_to_sync
 
 
 def shutdown_mt5():
