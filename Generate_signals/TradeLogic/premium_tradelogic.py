@@ -372,36 +372,25 @@ class Premium_Trade:
             if self.current_step < 3:
                 self.current_step += 1
             else:
-                new_balance = mt5.account_info().balance
-
                 if self.current_phase < 11:
-                    self.phase_initial_balances[self.current_phase + 1] = new_balance
+                    self.all_steps_balances[self.current_phase + 1] = mt5.account_info().balance
                     self.current_phase += 1
                 else:
-                    self.phase_initial_balances = {}
+                    self.all_steps_balances = {}
                     self.current_phase = 0
                 self.current_step = 0
 
         elif trade_status == "profit":            
             if self.current_phase > 0:
                 new_balance = mt5.account_info().balance
-                # previous_initial_balance = self.phase_initial_balances[(self.current_phase + 1) - 1]
-                # if previous_initial_balance:
                 
-                for phase, value in self.phase_initial_balances.items():
+                for phase, value in self.all_steps_balances.items():
                     if new_balance > value:
                         self.current_phase = phase
                         self.current_step = 0
                         break
                     else:
                         self.current_step = 0
-                # if new_balance > previous_initial_balance:
-                #     self.current_phase -= 1
-                #     self.current_step = 0
-                # else:
-                #     self.current_step = 0
-                # else:
-                #     self.current_step = 0
             else:
                 self.current_step = 0
     
@@ -424,7 +413,7 @@ class Premium_Trade:
         self.symbol = kwargs.get("pair")
         self.room = kwargs.get("group_name")     
         self.initial_balance = mt5.account_info().balance      
-        self.phase_initial_balances = {}
+        self.all_steps_balances = {}
         self.current_phase = 0
         self.current_step = 0
         trade_was_active = False
@@ -501,7 +490,7 @@ class Premium_Trade:
 
                 # adjust phases and steps
                 await self.adjust_phases_and_steps(trade_status)
-                print(self.phase_initial_balances)
+                print(self.all_steps_balances)
             # else:
             #     last_closed = await self.check_trade_history()
             #     if last_closed:
@@ -561,7 +550,7 @@ class Premium_Trade:
                 self.current_phase = int(parts[1])
                 self.current_step = int(parts[2])
                 await self.adjust_phases_and_steps(response["trade_status"])
-                print(self.phase_initial_balances)
+                print(self.all_steps_balances)
 
                 await self.channel_layer.group_send(
                     self.room,

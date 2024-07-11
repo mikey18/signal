@@ -8,16 +8,10 @@ import atexit
 from Generate_signals.models import MT5Account, MT5Account_Symbols
 logger = logging.getLogger(__name__)
 
-
 def shutdown_mt5():
     mt5.shutdown()
     logging.info("MT5 shutdown successfully")
           
-
-# @worker_ready.connect
-# def start_mt5(**kwargs):
-#     Premium_Trade().initiate_system()
- 
 @shared_task
 def signal_trade_task(master_account, 
                       master_password, 
