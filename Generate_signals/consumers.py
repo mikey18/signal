@@ -20,7 +20,6 @@ class PremiumCheckConsumerNew(AsyncWebsocketConsumer):
             self.task_running = False
             await self.accept()
 
-       
     async def disconnect(self, close_code):
         await self.leave_rooms()
 

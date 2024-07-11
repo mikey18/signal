@@ -1,79 +1,75 @@
-from channels.db import database_sync_to_async
-from fcm_django.models import FCMDevice
+from notification.models import Notification_Devices
 from firebase_admin.messaging import (Message, 
                                       Notification, 
                                       send)
 from celery import shared_task
-
-# def send_notification_sync(**kwargs):
-#     try:
-#         devices = FCMDevice.objects.filter(user_id=kwargs.get("user_id"), active=True)
-#         if devices:
-#             message_data = {
-#                 # "badge": "",
-#                 "title": kwargs.get("title", ""),
-#                 "body": kwargs.get("body", ""),
-#                 # "image": kwargs.get("image", ""),
-#                 # "icon": kwargs.get("icon", ""),
-#             }
-#             message = Message(data=message_data)     
-#             # for device in devices:
-#             #     device.send_message(message)   
-#             SENT = devices.send_message(message)   
-#             print(SENT)
-#     except Exception as e:
-#         print(e)
+import logging
+logger = logging.getLogger(__name__)
 
 @shared_task
 def send_notification_sync(**kwargs):
     try:
-        devices = FCMDevice.objects.filter(user_id=kwargs.get("user_id"), active=True)
         message_data = {
             "title":kwargs.get("title", ""),
             "body": kwargs.get("body", ""),
         }
-        for device in devices:
-            if device.type == 'web':
-                msg = Message(
-                    token=device.registration_id,
-                    data=message_data
-                )
-            else:
-                msg = Message(
-                    token=device.registration_id,
-                    notification=Notification(
-                        **message_data
-                    )
-                )
-            MSG = send(msg) 
-            print(MSG)    
-    except Exception as e:
-        print(e)
 
-@shared_task
-async def send_notification_async(**kwargs):
-    try:
-        devices = await database_sync_to_async(list)(FCMDevice.objects.filter(user_id=kwargs.get("user_id"), active=True))
-        if devices:
-            message_data = {
-                "title": kwargs.get("title", ""),
-                "body": kwargs.get("body", ""),
-            }
-            # await asyncio.sleep(0.05)
-            for device in devices:
-                if device.type == 'web':
-                    msg = Message(
-                        token=device.registration_id,
-                        data=message_data
-                    )
-                else:
-                    msg = Message(
-                        token=device.registration_id,
-                        notification=Notification(
-                            **message_data
-                        )
-                    )
-                MSG = send(msg) 
-                print(MSG)           
+        if kwargs.get("type") == 'web':
+            msg = Message(
+                token=kwargs.get("token"),
+                data=message_data
+            )
+        else:
+            msg = Message(
+                token=kwargs.get("token"),
+                notification=Notification(
+                    **message_data
+                )
+            )
+        MSG = send(msg) 
+        logger.info(f"Success, {MSG}")
     except Exception as e:
-        print(e)
+        logger.info(e)
+        device = Notification_Devices.objects.get(registration_id=kwargs.get("token"))
+        device.delete()
+
+def PUSH_NOTIFICATION(**kwargs):
+    devices = Notification_Devices.objects.filter(user__id=kwargs.get('user_id'))
+    for device in devices:
+        send_notification_sync.delay(
+            title=kwargs.get('title'),
+            body=kwargs.get('body'),
+            type=device.type,
+            token=device.registration_id
+        )
+
+# @shared_task
+# async def send_notification_async(**kwargs):
+#     try:
+#         devices = await database_sync_to_async(list)(Notification_Devices.objects.filter(user__id=kwargs.get("user_id")))
+#         if devices:
+#             message_data = {
+#                 "title": kwargs.get("title", ""),
+#                 "body": kwargs.get("body", ""),
+#             }
+#             # await asyncio.sleep(0.05)
+#             for device in devices:
+#                 if kwargs.get("type") == 'web':
+#                     msg = Message(
+#                         token=kwargs.get("token"),
+#                         data=message_data
+#                     )
+#                 else:
+#                     logger.info(device.device_id)
+#                     msg = Message(
+#                         token=kwargs.get("token"),
+#                         notification=Notification(
+#                             **message_data
+#                         )
+#                     )
+#                 MSG = send(msg) 
+#                 logger.info(MSG)           
+#     except Exception as e:
+#         logger.info(e)
+
+

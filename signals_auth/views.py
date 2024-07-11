@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, timezone
 from .functions.auth_functions import auth_encoder, auth_decoder
 from functions.CustomQuery import get_if_exists
 from Generate_signals.tasks import signal_trade_task
+from notification.models import Notification_Devices
 import MetaTrader5 as mt5
 from dotenv import load_dotenv
 from django.utils.decorators import method_decorator
@@ -128,21 +129,31 @@ class UpdateUser(APIView):
                 "msg": "Not Authorized"
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
 @method_decorator(gzip_page, name='dispatch')
 class LogoutAPIView(APIView):
-    def post(self, request):
-        payload = auth_decoder(request.META.get("HTTP_AUTHORIZATION"))
-        user = User.objects.get(id=payload["id"])
-        if user is None:
-            return Response({
-                "status": 400,
-                "message": "Logout Unsuccessful",
-            }, status=status.HTTP_400_BAD_REQUEST)
-
+    def no_auth(self):
         return Response({
-            "status": 200,
-            "message": "Logout Successful",
-        })
+            "status": 400,
+            "msg": "Not Authorized"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request):
+        try:
+            payload = auth_decoder(request.META.get("HTTP_AUTHORIZATION"))
+            user = get_if_exists(User, id=payload["id"])
+            device = get_if_exists(Notification_Devices, device_id=request['device_id'], user=user)
+            
+            if not user or not device:
+                return self.no_auth()
+            
+            device.delete()            
+            return Response({
+                'status': 200,
+                'msg': 'Logout Successful'
+            })
+        except Exception:
+            return self.no_auth()
 
 @method_decorator(gzip_page, name='dispatch')
 class Connect_MT5_Account(APIView):  
@@ -272,6 +283,9 @@ class Get_Broker_ServersAPI(APIView):
                 "status": 400,
                 "msg": 'Not Authorized'
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 # from django.views.generic import View

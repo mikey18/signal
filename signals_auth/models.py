@@ -181,7 +181,7 @@ class MT5Account_Symbols(models.Model):
     account = models.ForeignKey(MT5Account, on_delete=models.CASCADE)
     pair = models.CharField(max_length=100, choices=TradingPair.choices, verbose_name='Trading Pair', blank=True)
     type = models.CharField(max_length=100, choices=TradingPairTypes.choices, verbose_name='Trading Pair types', blank=True)
-    group_name = models.CharField(max_length=150, blank=True, null=True)
+    group_name = models.CharField(max_length=150, blank=True, null=True, unique=True)
     active = models.BooleanField(default=True)
 
     def generate_string(self):

@@ -5,8 +5,9 @@ import vectorbt as vbt
 import MetaTrader5 as mt5
 import logging
 from channels.db import database_sync_to_async
+from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
-from functions.notifications import send_notification_sync
+from functions.notifications import send_notification_sync, PUSH_NOTIFICATION
 from Generate_signals.models import Trade_History
 from signals_auth.models import MT5Account
 logger = logging.getLogger(__name__)
@@ -35,7 +36,7 @@ class Premium_Trade:
             # logger.info("Checking conditions in progress...\n")
             if (not (ma14.ma.iloc[-1] > ma50.ma.iloc[-1] > ma365.ma.iloc[-1] and rsi.rsi.iloc[-1] < 40)
             and not (ma14.ma.iloc[-1] < ma50.ma.iloc[-1] < ma365.ma.iloc[-1] and rsi.rsi.iloc[-1] > 59)):
-                logger.info(f"checking for signal, account - {mt5.account_info().name}, pair - {self.symbol}")
+                logger.info(f"checking for signal | account - {mt5.account_info().name} | pair - {self.symbol}")
 
                 data = {
                     "status": False,
@@ -209,12 +210,12 @@ class Premium_Trade:
         for account in accounts:
             user = await database_sync_to_async(lambda: account.user)()
             await self.login_and_place_trade_slave(user, symbol, trade_type, price)
-            send_notification_sync.delay(
+            await sync_to_async(PUSH_NOTIFICATION)(
                 user_id=user.id,
                 title="Trade placed",
                 body=f"Signal was received and trade has been placed - {self.symbol}"
             )
-
+    
         await self.login_to_mt5(
             self.master_account,
             self.master_password,
@@ -252,7 +253,7 @@ class Premium_Trade:
             # slave_accounts_trade = await self.place_trade_slave_accounts(symbol, condition, price, master_result)
             # THIS IS ON HOLD
             # # send notification
-            send_notification_sync.delay(
+            await sync_to_async(PUSH_NOTIFICATION)(
                 user_id=self.user_id,
                 title="Trade placed",
                 body=f"Signal was received and trade has been placed - {self.symbol}"

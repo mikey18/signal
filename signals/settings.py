@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'channels',
     'corsheaders',
     'rest_framework',
-    'fcm_django',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -61,22 +60,6 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 
 # cred = credentials.Certificate(os.path.join(BASE_DIR, 'serviceAccountKey.json'))
 # FIREBASE_APP= firebase_admin.initialize_app(cred)
-
-FCM_DJANGO_SETTINGS = {
-     # an instance of firebase_admin.App to be used as default for all fcm-django requests
-     # default: None (the default Firebase app)
-    "DEFAULT_FIREBASE_APP": None,
-     # default: _('FCM Django')
-    "APP_VERBOSE_NAME": "Notification system",
-     # true if you want to have only one active device per registered user at a time
-     # default: False
-    "ONE_DEVICE_PER_USER": True,
-     # devices to which notifications cannot be sent,
-     # are deleted upon receiving error response from FCM
-     # default: False
-    "DELETE_INACTIVE_DEVICES": True,
-}
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
