@@ -30,7 +30,7 @@ def signal_trade_task(master_account,
     )
 
 
-# @worker_ready.connect
+@worker_ready.connect
 def start_mt5(**kwargs):
     master_account = get_if_exists(MT5Account, master=True, verified=True)
     if not master_account:

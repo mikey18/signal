@@ -7,3 +7,7 @@ flower = celery -A signals.celery_app flower
 
 
 
+pip install Django django-cors-headers firebase-admin celery djangorestframework
+pip install -U channels[daphne]
+pip install vectorbt
+pip install channels-redis
