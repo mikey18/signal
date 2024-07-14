@@ -1,13 +1,13 @@
 import asyncio
-from datetime import datetime, timezone, timedelta
 import pandas as pd
 import vectorbt as vbt
 import MetaTrader5 as mt5
 import logging
-from channels.db import database_sync_to_async
+from datetime import datetime, timezone, timedelta
 from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from functions.notifications import send_notification_sync, PUSH_NOTIFICATION
+from functions.notifications import PUSH_NOTIFICATION
 from Generate_signals.models import Trade_History
 from signals_auth.models import MT5Account
 logger = logging.getLogger(__name__)
@@ -369,12 +369,57 @@ class Premium_Trade:
         )
 
     async def adjust_phases_and_steps(self, trade_status):
+        async def set_initial_balances():
+            phase = self.current_phase + 1
+            balance = mt5.account_info().balance
+
+            if phase in self.all_steps_balances:
+                self.all_steps_balances[phase].append(balance)
+            else:
+                self.all_steps_balances[phase] = [balance]
+
+        async def process_profit():
+            new_balance = mt5.account_info().balance
+            # loop both each phase and the respecttive steps
+            for phase, steps in self.all_steps_balances.items():
+                # after it loops a phase, this loops the steps
+                for step in steps:
+                    # checks if new balance is greater than or equal to a step
+                    if new_balance >= step:
+                        is_new_balance_greater_or_equal = True
+                        logger.info(f'\nfound comparable value | setting step to {steps.index(step)} (index) | phase {phase}')
+
+                        # since new balance is greter than step, it saves the phase to this current phase, so as the step        
+                        self.current_phase = phase - 1
+                        self.current_step = steps.index(step)
+
+                        # adjusts the inital balances to remove the unwanted phases and their step balances
+                        for i in range(0, (len(self.all_steps_balances) + 1)):
+                            if i > phase:
+                                self.all_steps_balances.pop(i)
+
+                        # adjusts the inital balance to remove the unwanted steps balances
+                        mini_phase = self.all_steps_balances[phase]
+                        self.all_steps_balances[phase] = [i for i in mini_phase if i >= step]
+
+                        # since the first phase and step will always be the highest, if it all end up to phase 1 step 0, empty the phase 1
+                        if phase == 1 and len(self.all_steps_balances[phase]) == 1:
+                            self.all_steps_balances[phase] = []
+
+                        # logger.info(f'\n{self.all_steps_balances}')
+                        break
+                    else:
+                        logger.info(f'Remain in same phase - {phase} and step - {self.current_step}')
+                if is_new_balance_greater_or_equal:
+                    break
+
         if trade_status == "loss":
+            await set_initial_balances()
+
             if self.current_step < 3:
                 self.current_step += 1
             else:
                 if self.current_phase < 11:
-                    self.all_steps_balances[self.current_phase + 1] = mt5.account_info().balance
                     self.current_phase += 1
                 else:
                     self.all_steps_balances = {}
@@ -382,22 +427,11 @@ class Premium_Trade:
                 self.current_step = 0
 
         elif trade_status == "profit":            
-            if self.current_phase > 0:
-                new_balance = mt5.account_info().balance
-                
-                for phase, value in self.all_steps_balances.items():
-                    if new_balance > value:
-                        self.current_phase = phase
-                        self.current_step = 0
-                        break
-                    else:
-                        self.current_step = 0
-            else:
-                self.current_step = 0
-    
+            await process_profit()
+
     async def shutdown_mt5():
         mt5.shutdown()
-        logging.info("MT5 shutdown successfully") 
+        logging.info("MT5 shutdown successfull") 
     
     async def login_to_mt5(self, account, password, server):
         login = mt5.login(login=account, 
@@ -491,11 +525,11 @@ class Premium_Trade:
 
                 # adjust phases and steps
                 await self.adjust_phases_and_steps(trade_status)
-                print(self.all_steps_balances)
+                logger.info(self.all_steps_balances)
             # else:
             #     last_closed = await self.check_trade_history()
             #     if last_closed:
-            #         print('last closed')
+            #           logger.info('last closed')
             #         parts = self.last_closed_trade.comment.lower().split(".")
             #         logger.info(f"{parts} - {self.symbol}")
             #         logger.info(f"{parts} - {self.symbol}")
@@ -551,7 +585,7 @@ class Premium_Trade:
                 self.current_phase = int(parts[1])
                 self.current_step = int(parts[2])
                 await self.adjust_phases_and_steps(response["trade_status"])
-                print(self.all_steps_balances)
+                logger.info(self.all_steps_balances)
 
                 await self.channel_layer.group_send(
                     self.room,
