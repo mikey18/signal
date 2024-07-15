@@ -36,6 +36,11 @@ class Register_Push_Notification(APIView):
             fcm = get_if_exists(Notification_Devices,
                 registration_id=request.data['token']
             )
+            if fcm:
+                return Response({
+                    "status": 400,
+                    "msg": 'Token already exists'
+                }, status=status.HTTP_400_BAD_REQUEST)
             device = get_if_exists(Notification_Devices,
                 device_id=request.data['device_id']
             )
@@ -44,11 +49,7 @@ class Register_Push_Notification(APIView):
                     "status": 400,
                     "msg": 'Device already exists'
                 }, status=status.HTTP_400_BAD_REQUEST)
-            if fcm:
-                return Response({
-                    "status": 400,
-                    "msg": 'Token already exists'
-                }, status=status.HTTP_400_BAD_REQUEST)
+          
             
             Notification_Devices.objects.create(
                 user=user,

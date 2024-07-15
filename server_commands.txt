@@ -6,8 +6,16 @@ redis = redis-server
 flower = celery -A signals.celery_app flower
 
 
-
-pip install Django django-cors-headers firebase-admin celery djangorestframework
+packages
+pip install Django django-cors-headers firebase-admin celery djangorestframework python-dotenv
 pip install -U channels[daphne]
 pip install vectorbt
 pip install channels-redis
+pip install django-nested-admin
+pip install numpy
+pip install cloudinary
+pip install whitenoise
+pip install psycopg2
+pip install pycryptodome
+pip install -U Twisted[tls,http2]
+pip install MetaTrader5
