@@ -380,6 +380,8 @@ class Premium_Trade:
 
         async def process_profit():
             new_balance = mt5.account_info().balance
+            is_new_balance_greater_or_equal = False
+
             # loop both each phase and the respecttive steps
             for phase, steps in self.all_steps_balances.items():
                 # after it loops a phase, this loops the steps
@@ -410,6 +412,7 @@ class Premium_Trade:
                         break
                     else:
                         logger.info(f'Remain in same phase - {phase} and step - {self.current_step}')
+
                 if is_new_balance_greater_or_equal:
                     break
 
