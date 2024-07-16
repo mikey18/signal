@@ -403,7 +403,7 @@ class Premium_Trade:
                         self.all_steps_balances[phase] = [i for i in mini_phase if i >= step]
 
                         # since the first phase and step will always be the highest, if it all end up to phase 1 step 0, empty the phase 1
-                        if phase == 1 and len(self.all_steps_balances[phase]) == 1:
+                        if phase == 1 and self.current_step == 0:
                             self.all_steps_balances[phase] = []
 
                         # logger.info(f'\n{self.all_steps_balances}')
@@ -582,8 +582,8 @@ class Premium_Trade:
                 # adjust phases and steps
                 parts = self.open_position.comment.lower().split(".")
                 logger.info(f"{parts} - {self.symbol}")
-                self.current_phase = int(parts[1])
-                self.current_step = int(parts[2])
+                # self.current_phase = int(parts[1])
+                # self.current_step = int(parts[2])
                 await self.adjust_phases_and_steps(response["trade_status"])
                 logger.info(self.all_steps_balances)
 
