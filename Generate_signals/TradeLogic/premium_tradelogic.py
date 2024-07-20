@@ -311,21 +311,44 @@ class Premium_Trade:
                 initial_lot_size = await self.convert_to_two_decimal_places(calculation)
                 return initial_lot_size
     
-    async def PHASES_DATA(self):
-        initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)
-        logger.info(initial_lot_size)
+    # async def PHASES_DATA(self, initial_lot_size):
+    #     # initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)
+    #     logger.info(initial_lot_size)
+    #     phases = {
+    #         phase: [(phase * initial_lot_size, 250, 750), 
+    #                 (phase * initial_lot_size, 250, 750), 
+    #                 (phase * initial_lot_size, 500, 1500), 
+    #                 (phase * initial_lot_size, 1000, 3000)]
+    #         for phase in range(1, 13)
+    #     }
+    #     return phases
+
+    async def PHASES_DATA(self, initial_lot_size):
+        # initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)    
+        # Initialize the first phase
         phases = {
-            phase: [(phase * initial_lot_size, 250, 750), 
-                    (phase * initial_lot_size, 250, 750), 
-                    (phase * initial_lot_size, 500, 1500), 
-                    (phase * initial_lot_size, 1000, 3000)]
-            for phase in range(1, 13)
+            1: [(1 * initial_lot_size, 250, 750), 
+                (1 * initial_lot_size, 250, 750), 
+                (1 * initial_lot_size, 500, 1500), 
+                (1 * initial_lot_size, 1000, 3000)]
         }
+
+        # Calculate subsequent phases
+        for phase in range(2, 13):
+            previous_phase_value = phases[phase - 1][0][0]  # Get the first value of the previous phase
+            current_phase_value = 2 * previous_phase_value
+            phases[phase] = [
+                (current_phase_value, 250, 750),
+                (current_phase_value, 250, 750),
+                (current_phase_value, 500, 1500),
+                (current_phase_value, 1000, 3000)
+            ]
+            
         return phases
 
-    async def get_sl_tp_lot_size(self, condition, price):
+    async def get_sl_tp_lot_size(self, initial_lot_size, condition, price):
         # Get the lot size, stop loss, and take profit for the current phase and step
-        phases = await self.PHASES_DATA()
+        phases = await self.PHASES_DATA(initial_lot_size)
         lot_size, stop_loss_pips, take_profit_pips = phases[self.current_phase + 1][self.current_step]            
 
         # Get the current price
@@ -452,6 +475,7 @@ class Premium_Trade:
         self.room = kwargs.get("group_name")     
         self.initial_balance = mt5.account_info().balance      
         self.all_steps_balances = {}
+        self.initial_lot_size = 0
         self.current_phase = 0
         self.current_step = 0
         trade_was_active = False
@@ -554,7 +578,19 @@ class Premium_Trade:
             price = await self.get_price(self.symbol, signal_response["condition"])
             
             # Calculate the stop loss and take profit prices
-            sl, tp, lot_size = await self.get_sl_tp_lot_size(signal_response["condition"], price)
+            if self.current_phase == 0 and self.current_step == 0:
+                logger.info(f"System is in phase - {self.current_phase}, step - {self.current_step} | RESETTING THE INITIAL LOT SIZE.")
+                self.initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)
+                logger.info(f"INITIAL LOT SIZE = {self.initial_lot_size}")
+            else:
+                logger.info(f"System is in phase - {self.current_phase}, step - {self.current_step} | KEEP THE INITIAL LOT SIZE.")
+                logger.info(f"INITIAL LOT SIZE = {self.initial_lot_size}")
+
+            sl, tp, lot_size = await self.get_sl_tp_lot_size(
+                                                            self.initial_lot_size, 
+                                                            signal_response["condition"], 
+                                                            price
+                                                            )
             logger.info(f"price - {price} | sl - {sl} | tp - {tp} | lot size - {lot_size}")
 
             # Define the trade request
