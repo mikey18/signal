@@ -405,39 +405,48 @@ class Premium_Trade:
             new_balance = mt5.account_info().balance
             is_new_balance_greater_or_equal = False
 
-            # loop both each phase and the respecttive steps
-            for phase, steps in self.all_steps_balances.items():
-                # after it loops a phase, this loops the steps
-                for step in steps:
-                    # checks if new balance is greater than or equal to a step
-                    if new_balance >= step:
-                        is_new_balance_greater_or_equal = True
-                        logger.info(f'\nfound comparable value | setting step to {steps.index(step)} (index) | phase {phase}')
+            if new_balance >= self.max_balance:
+                logger.info(f'\n New balance - {new_balance} is greater than max balance - {self.max_balance} | setting new max balance')
+                self.all_steps_balances = {}
+                self.current_phase = 0
+                self.current_step = 0
+                self.max_balance = new_balance
+                self.max_balance_indicator = True
+                logger.info(f'\n Resetting to Phase - {self.current_phase}, Step - {self.current_step}')
+            else:
+                # loop both each phase and the respecttive steps
+                for phase, steps in self.all_steps_balances.items():
+                    # after it loops a phase, this loops the steps
+                    for step in steps:
+                        # checks if new balance is greater than or equal to a step
+                        if new_balance >= step:
+                            is_new_balance_greater_or_equal = True
+                            logger.info(f'\nfound comparable value | setting step to {steps.index(step)} (index) | phase {phase}')
 
-                        # since new balance is greter than step, it saves the phase to this current phase, so as the step        
-                        self.current_phase = phase - 1
-                        self.current_step = steps.index(step)
+                            # since new balance is greter than step, it saves the phase to this current phase, so as the step        
+                            self.current_phase = phase - 1
+                            self.current_step = steps.index(step)
 
-                        # adjusts the inital balances to remove the unwanted phases and their step balances
-                        for i in range(0, (len(self.all_steps_balances) + 1)):
-                            if i > phase:
-                                self.all_steps_balances.pop(i)
+                            # adjusts the inital balances to remove the unwanted phases and their step balances
+                            for i in range(0, (len(self.all_steps_balances) + 1)):
+                                if i > phase:
+                                    self.all_steps_balances.pop(i)
 
-                        # adjusts the inital balance to remove the unwanted steps balances
-                        mini_phase = self.all_steps_balances[phase]
-                        self.all_steps_balances[phase] = [i for i in mini_phase if i >= step]
+                            # adjusts the inital balance to remove the unwanted steps balances
+                            mini_phase = self.all_steps_balances[phase]
+                            self.all_steps_balances[phase] = [i for i in mini_phase if i >= step]
 
-                        # since the first phase and step will always be the highest, if it all end up to phase 1 step 0, empty the phase 1
-                        if phase == 1 and self.current_step == 0:
-                            self.all_steps_balances[phase] = []
+                            # since the first phase and step will always be the highest, if it all end up to phase 1 step 0, empty the phase 1
+                            # if phase == 1 and self.current_step == 0:
+                            #     self.all_steps_balances[phase] = []
 
-                        # logger.info(f'\n{self.all_steps_balances}')
+                            # logger.info(f'\n{self.all_steps_balances}')
+                            break
+                        else:
+                            logger.info(f'Remain in same phase - {phase} and step - {self.current_step}')
+
+                    if is_new_balance_greater_or_equal:
                         break
-                    else:
-                        logger.info(f'Remain in same phase - {phase} and step - {self.current_step}')
-
-                if is_new_balance_greater_or_equal:
-                    break
 
         if trade_status == "loss":
             await set_initial_balances()
@@ -472,8 +481,11 @@ class Premium_Trade:
         self.master_password = kwargs.get("master_password")
         self.master_server = kwargs.get("master_server")
         self.symbol = kwargs.get("pair")
-        self.room = kwargs.get("group_name")     
-        self.initial_balance = mt5.account_info().balance      
+        self.room = kwargs.get("group_name") 
+
+        self.initial_balance = mt5.account_info().balance   
+        self.max_balance = mt5.account_info().balance     
+        self.max_balance_indicator = False 
         self.all_steps_balances = {}
         self.initial_lot_size = 0
         self.current_phase = 0
@@ -578,10 +590,11 @@ class Premium_Trade:
             price = await self.get_price(self.symbol, signal_response["condition"])
             
             # Calculate the stop loss and take profit prices
-            if self.current_phase == 0 and self.current_step == 0:
+            if self.current_phase == 0 and self.current_step == 0 and self.max_balance_indicator:
                 logger.info(f"System is in phase - {self.current_phase}, step - {self.current_step} | RESETTING THE INITIAL LOT SIZE.")
                 self.initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)
                 logger.info(f"INITIAL LOT SIZE = {self.initial_lot_size}")
+                self.max_balance_indicator = False
             else:
                 logger.info(f"System is in phase - {self.current_phase}, step - {self.current_step} | KEEP THE INITIAL LOT SIZE.")
                 logger.info(f"INITIAL LOT SIZE = {self.initial_lot_size}")
