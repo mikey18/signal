@@ -485,7 +485,7 @@ class Premium_Trade:
 
         self.initial_balance = mt5.account_info().balance   
         self.max_balance = mt5.account_info().balance     
-        self.max_balance_indicator = False 
+        self.max_balance_indicator = True 
         self.all_steps_balances = {}
         self.initial_lot_size = 0
         self.current_phase = 0
@@ -591,7 +591,7 @@ class Premium_Trade:
             
             # Calculate the stop loss and take profit prices
             if self.current_phase == 0 and self.current_step == 0 and self.max_balance_indicator:
-                logger.info(f"System is in phase - {self.current_phase}, step - {self.current_step} | RESETTING THE INITIAL LOT SIZE.")
+                logger.info(f"System is in phase - {self.current_phase}, step - {self.current_step} | SETTING THE INITIAL LOT SIZE.")
                 self.initial_lot_size = await self.calculate_initial_lot_size(mt5.account_info().balance)
                 logger.info(f"INITIAL LOT SIZE = {self.initial_lot_size}")
                 self.max_balance_indicator = False
