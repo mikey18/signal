@@ -31,6 +31,7 @@ def send_notification_sync(**kwargs):
     except Exception as e:
         logger.info(e)
         device = Notification_Devices.objects.get(registration_id=kwargs.get("token"))
+        logger.info('token is invalid, deleting from db')
         device.delete()
 
 def PUSH_NOTIFICATION(**kwargs):
