@@ -217,7 +217,7 @@ class Premium_Trade:
             await sync_to_async(PUSH_NOTIFICATION)(
                 user_id=user.id,
                 title="Trade placed",
-                body=f"Signal was received and trade has been placed - {self.symbol}"
+                body=f"{trade_type.capitalize()} signal received on {self.symbol}"
             )
     
         await self.login_to_mt5(
@@ -260,7 +260,7 @@ class Premium_Trade:
             await sync_to_async(PUSH_NOTIFICATION)(
                 user_id=self.user_id,
                 title="Trade placed",
-                body=f"Signal was received and trade has been placed - {self.symbol}"
+                body=f"{condition.capitalize()} signal received on {self.symbol}"
             )
             # send notification
             
