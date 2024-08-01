@@ -15,15 +15,39 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Notification_Devices',
+            name="Notification_Devices",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('device_id', models.CharField(blank=True, max_length=200)),
-                ('registration_id', models.CharField(max_length=1000)),
-                ('type', models.CharField(choices=[('web', 'web'), ('android', 'android'), ('ios', 'ios')], max_length=10)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("device_id", models.CharField(blank=True, max_length=200)),
+                ("registration_id", models.CharField(max_length=1000)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("web", "web"),
+                            ("android", "android"),
+                            ("ios", "ios"),
+                        ],
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

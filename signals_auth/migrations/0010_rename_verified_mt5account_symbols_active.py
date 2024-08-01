@@ -6,13 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0009_remove_mt5account_group_name_remove_mt5account_pair_and_more'),
+        (
+            "signals_auth",
+            "0009_remove_mt5account_group_name_remove_mt5account_pair_and_more",
+        ),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='mt5account_symbols',
-            old_name='verified',
-            new_name='active',
+            model_name="mt5account_symbols",
+            old_name="verified",
+            new_name="active",
         ),
     ]

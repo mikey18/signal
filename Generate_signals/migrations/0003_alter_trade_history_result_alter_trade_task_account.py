@@ -7,19 +7,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('Generate_signals', '0002_trade_history_account_alter_trade_history_result_and_more'),
-        ('signals_auth', '0008_mt5account_symbols_group_name'),
+        (
+            "Generate_signals",
+            "0002_trade_history_account_alter_trade_history_result_and_more",
+        ),
+        ("signals_auth", "0008_mt5account_symbols_group_name"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='trade_history',
-            name='result',
-            field=models.CharField(blank=True, choices=[('profit', 'profit'), ('loss', 'loss')], max_length=15),
+            model_name="trade_history",
+            name="result",
+            field=models.CharField(
+                blank=True,
+                choices=[("profit", "profit"), ("loss", "loss")],
+                max_length=15,
+            ),
         ),
         migrations.AlterField(
-            model_name='trade_task',
-            name='account',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='signals_auth.mt5account_symbols'),
+            model_name="trade_task",
+            name="account",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="signals_auth.mt5account_symbols",
+            ),
         ),
     ]

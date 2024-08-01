@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0002_alter_mt5account_account_alter_mt5account_pair'),
+        ("signals_auth", "0002_alter_mt5account_account_alter_mt5account_pair"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='mt5account',
-            name='account',
+            model_name="mt5account",
+            name="account",
             field=models.IntegerField(),
         ),
     ]

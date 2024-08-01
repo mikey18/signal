@@ -1,11 +1,8 @@
 from django.db import models
 from signals_auth.models import User
 
-devices = {
-    ("android", "android"),
-    ("ios", "ios"),
-    ("web", "web")
-}
+devices = {("android", "android"), ("ios", "ios"), ("web", "web")}
+
 
 class Notification_Devices(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)

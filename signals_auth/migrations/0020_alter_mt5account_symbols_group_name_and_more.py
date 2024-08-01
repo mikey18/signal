@@ -6,18 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0019_mt5account_symbols_type_and_more'),
+        ("signals_auth", "0019_mt5account_symbols_type_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='mt5account_symbols',
-            name='group_name',
+            model_name="mt5account_symbols",
+            name="group_name",
             field=models.CharField(blank=True, max_length=150, null=True, unique=True),
         ),
         migrations.AlterField(
-            model_name='mt5account_symbols',
-            name='type',
-            field=models.CharField(blank=True, choices=[('currency', 'currency'), ('stocks', 'stocks'), ('cryptocurrency', 'cryptocurrency'), ('futures', 'futures'), ('metals', 'metals')], max_length=100, verbose_name='Trading Pair types'),
+            model_name="mt5account_symbols",
+            name="type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("currency", "currency"),
+                    ("stocks", "stocks"),
+                    ("cryptocurrency", "cryptocurrency"),
+                    ("futures", "futures"),
+                    ("metals", "metals"),
+                ],
+                max_length=100,
+                verbose_name="Trading Pair types",
+            ),
         ),
     ]

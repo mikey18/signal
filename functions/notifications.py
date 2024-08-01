@@ -1,48 +1,44 @@
 from notification.models import Notification_Devices
-from firebase_admin.messaging import (Message, 
-                                      Notification, 
-                                      send)
+from firebase_admin.messaging import Message, Notification, send
 from celery import shared_task
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 @shared_task
 def send_notification_sync(**kwargs):
     try:
         message_data = {
-            "title":kwargs.get("title", ""),
+            "title": kwargs.get("title", ""),
             "body": kwargs.get("body", ""),
         }
 
-        if kwargs.get("type") == 'web':
-            msg = Message(
-                token=kwargs.get("token"),
-                data=message_data
-            )
+        if kwargs.get("type") == "web":
+            msg = Message(token=kwargs.get("token"), data=message_data)
         else:
             msg = Message(
-                token=kwargs.get("token"),
-                notification=Notification(
-                    **message_data
-                )
+                token=kwargs.get("token"), notification=Notification(**message_data)
             )
-        MSG = send(msg) 
+        MSG = send(msg)
         logger.info(f"Success, {MSG}")
     except Exception as e:
         logger.info(e)
         device = Notification_Devices.objects.get(registration_id=kwargs.get("token"))
-        logger.info('token is invalid, deleting from db')
+        logger.info("token is invalid, deleting from db")
         device.delete()
 
+
 def PUSH_NOTIFICATION(**kwargs):
-    devices = Notification_Devices.objects.filter(user__id=kwargs.get('user_id'))
+    devices = Notification_Devices.objects.filter(user__id=kwargs.get("user_id"))
     for device in devices:
         send_notification_sync.delay(
-            title=kwargs.get('title'),
-            body=kwargs.get('body'),
+            title=kwargs.get("title"),
+            body=kwargs.get("body"),
             type=device.type,
-            token=device.registration_id
+            token=device.registration_id,
         )
+
 
 # @shared_task
 # async def send_notification_async(**kwargs):
@@ -68,9 +64,7 @@ def PUSH_NOTIFICATION(**kwargs):
 #                             **message_data
 #                         )
 #                     )
-#                 MSG = send(msg) 
-#                 logger.info(MSG)           
+#                 MSG = send(msg)
+#                 logger.info(MSG)
 #     except Exception as e:
 #         logger.info(e)
-
-

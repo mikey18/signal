@@ -7,23 +7,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0015_user_verified'),
+        ("signals_auth", "0015_user_verified"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Brokers',
+            name="Brokers",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(blank=True, max_length=1000)),
-                ('active', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(blank=True, max_length=1000)),
+                ("active", models.BooleanField(default=True)),
             ],
         ),
         migrations.AlterField(
-            model_name='mt5account',
-            name='server',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='signals_auth.brokers'),
+            model_name="mt5account",
+            name="server",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="signals_auth.brokers"
+            ),
         ),
     ]

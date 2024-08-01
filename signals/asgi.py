@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 
 import os
 import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'signals.settings')
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "signals.settings")
 django.setup()
 
 from channels.auth import AuthMiddlewareStack
@@ -19,9 +20,9 @@ from django.core.asgi import get_asgi_application
 from Generate_signals.routing import url_pattern
 
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack(
-            URLRouter(url_pattern)
-    ),
-})
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": AuthMiddlewareStack(URLRouter(url_pattern)),
+    }
+)

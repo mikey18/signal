@@ -6,16 +6,22 @@ from signals_auth.models import User, MT5Account, MT5Account_Symbols
 from functions.CustomQuery import get_if_exists
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
+
 logger = logging.getLogger(__name__)
+
 
 class PremiumCheckConsumerNew(AsyncWebsocketConsumer):
     async def connect(self):
         self.room = None
-        token = self.scope['query_string'].decode('utf-8')
+        token = self.scope["query_string"].decode("utf-8")
         payload = auth_decoder(token)
-        user = await sync_to_async(get_if_exists)(User, id=payload['id'])
-        account = await sync_to_async(get_if_exists)(MT5Account, user=user, verified=True)
-        self.master = await sync_to_async(get_if_exists)(MT5Account, master=True, verified=True)
+        user = await sync_to_async(get_if_exists)(User, id=payload["id"])
+        account = await sync_to_async(get_if_exists)(
+            MT5Account, user=user, verified=True
+        )
+        self.master = await sync_to_async(get_if_exists)(
+            MT5Account, master=True, verified=True
+        )
         if user and account and self.master:
             self.task_running = False
             await self.accept()
@@ -28,13 +34,12 @@ class PremiumCheckConsumerNew(AsyncWebsocketConsumer):
             client_data = json.loads(text_data)
             if client_data["msg"] == "ping":
                 if self.task_running:
-                    await self.send(text_data=json.dumps({'status': False}))
+                    await self.send(text_data=json.dumps({"status": False}))
                 else:
                     master_symbols = await self.get_master_symbols()
                     async for symbol in master_symbols:
                         await self.channel_layer.group_add(
-                            symbol.group_name,
-                            self.channel_name
+                            symbol.group_name, self.channel_name
                         )
                     self.task_running = True
 
@@ -42,23 +47,26 @@ class PremiumCheckConsumerNew(AsyncWebsocketConsumer):
                     for i in master_symbols:
                         symbols.append(i.pair)
 
-                    await self.send(text_data=json.dumps({
-                        'status': True,
-                        'message': 'You are now receiving messages',
-                        'symbols': symbols
-                    }))
+                    await self.send(
+                        text_data=json.dumps(
+                            {
+                                "status": True,
+                                "message": "You are now receiving messages",
+                                "symbols": symbols,
+                            }
+                        )
+                    )
             elif client_data["msg"] == "stop":
                 if self.task_running:
                     await self.leave_rooms()
                     self.task_running = False
-                    await self.send(text_data=json.dumps({
-                        'status': True,
-                        'message': 'Stopped'
-                    }))
+                    await self.send(
+                        text_data=json.dumps({"status": True, "message": "Stopped"})
+                    )
                 else:
-                    await self.send(text_data=json.dumps({'status': False}))
+                    await self.send(text_data=json.dumps({"status": False}))
             else:
-                await self.send(text_data=json.dumps({'status': False}))
+                await self.send(text_data=json.dumps({"status": False}))
                 await self.close()
         except Exception:
             await self.close()
@@ -66,20 +74,20 @@ class PremiumCheckConsumerNew(AsyncWebsocketConsumer):
     async def leave_rooms(self):
         master_symbols = await self.get_master_symbols()
         async for symbol in master_symbols:
-            await self.channel_layer.group_discard(
-                symbol.group_name,
-                self.channel_name
-            )
+            await self.channel_layer.group_discard(symbol.group_name, self.channel_name)
 
     async def get_master_symbols(self):
-        return await database_sync_to_async(MT5Account_Symbols.objects.filter)(account=self.master, active=True)
+        return await database_sync_to_async(MT5Account_Symbols.objects.filter)(
+            account=self.master, active=True
+        )
 
     async def trade_format(self, event):
-        await self.send(text_data=json.dumps({
-            'status': event['status'],
-            'message': event['message'],
-            'data': event['data']
-        }))
-
-
-
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "status": event["status"],
+                    "message": event["message"],
+                    "data": event["data"],
+                }
+            )
+        )

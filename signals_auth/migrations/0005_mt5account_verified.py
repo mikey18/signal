@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0004_mt5account_group_name'),
+        ("signals_auth", "0004_mt5account_group_name"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='mt5account',
-            name='verified',
+            model_name="mt5account",
+            name="verified",
             field=models.BooleanField(default=False),
         ),
     ]

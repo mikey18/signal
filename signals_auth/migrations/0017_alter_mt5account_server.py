@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0016_brokers_alter_mt5account_server'),
+        ("signals_auth", "0016_brokers_alter_mt5account_server"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='mt5account',
-            name='server',
+            model_name="mt5account",
+            name="server",
             field=models.CharField(max_length=150),
         ),
     ]

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0014_remove_user_fullname'),
+        ("signals_auth", "0014_remove_user_fullname"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='verified',
+            model_name="user",
+            name="verified",
             field=models.BooleanField(default=True),
         ),
     ]

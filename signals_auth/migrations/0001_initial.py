@@ -11,46 +11,173 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('first_name', models.CharField(blank=True, max_length=150, verbose_name='first name')),
-                ('last_name', models.CharField(blank=True, max_length=150, verbose_name='last name')),
-                ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
-                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('email', models.EmailField(max_length=254, unique=True, verbose_name='email address')),
-                ('fullname', models.CharField(max_length=150)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
+                (
+                    "last_login",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="last login"
+                    ),
+                ),
+                (
+                    "is_superuser",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        verbose_name="superuser status",
+                    ),
+                ),
+                (
+                    "first_name",
+                    models.CharField(
+                        blank=True, max_length=150, verbose_name="first name"
+                    ),
+                ),
+                (
+                    "last_name",
+                    models.CharField(
+                        blank=True, max_length=150, verbose_name="last name"
+                    ),
+                ),
+                (
+                    "is_staff",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates whether the user can log into this admin site.",
+                        verbose_name="staff status",
+                    ),
+                ),
+                (
+                    "date_joined",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="date joined"
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(
+                        max_length=254, unique=True, verbose_name="email address"
+                    ),
+                ),
+                ("fullname", models.CharField(max_length=150)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'user',
-                'verbose_name_plural': 'users',
-                'abstract': False,
+                "verbose_name": "user",
+                "verbose_name_plural": "users",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='MT5Account',
+            name="MT5Account",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('account', models.CharField(max_length=150)),
-                ('password', models.CharField(max_length=150)),
-                ('server', models.CharField(max_length=150)),
-                ('pair', models.CharField(blank=True, choices=[('EUR/USD', 'Euro/US Dollar'), ('USD/JPY', 'US Dollar/Japanese Yen'), ('GBP/USD', 'British Pound/US Dollar'), ('USD/CHF', 'US Dollar/Swiss Franc'), ('USD/CAD', 'US Dollar/Canadian Dollar'), ('AUD/USD', 'Australian Dollar/US Dollar'), ('NZD/USD', 'New Zealand Dollar/US Dollar'), ('EUR/GBP', 'Euro/British Pound'), ('EUR/JPY', 'Euro/Japanese Yen'), ('GBP/JPY', 'British Pound/Japanese Yen'), ('AUD/JPY', 'Australian Dollar/Japanese Yen'), ('NZD/JPY', 'New Zealand Dollar/Japanese Yen'), ('AUD/NZD', 'Australian Dollar/New Zealand Dollar'), ('AUD/CAD', 'Australian Dollar/Canadian Dollar'), ('GBP/AUD', 'British Pound/Australian Dollar'), ('GBP/CAD', 'British Pound/Canadian Dollar'), ('EUR/AUD', 'Euro/Australian Dollar'), ('USD/SGD', 'US Dollar/Singapore Dollar'), ('USD/HKD', 'US Dollar/Hong Kong Dollar'), ('USD/TRY', 'US Dollar/Turkish Lira'), ('USD/MXN', 'US Dollar/Mexican Peso'), ('USD/ZAR', 'US Dollar/South African Rand'), ('USD/SEK', 'US Dollar/Swedish Krona'), ('USD/DKK', 'US Dollar/Danish Krone'), ('USD/NOK', 'US Dollar/Norwegian Krone'), ('USD/INR', 'US Dollar/Indian Rupee'), ('USD/THB', 'US Dollar/Thai Baht'), ('EUR/CHF', 'Euro/Swiss Franc'), ('EUR/CAD', 'Euro/Canadian Dollar'), ('EUR/NZD', 'Euro/New Zealand Dollar'), ('GBP/CHF', 'British Pound/Swiss Franc'), ('CAD/JPY', 'Canadian Dollar/Japanese Yen'), ('NZD/CAD', 'New Zealand Dollar/Canadian Dollar'), ('XAU/USD', 'Gold/US Dollar'), ('XAG/USD', 'Silver/US Dollar'), ('XPT/USD', 'Platinum/US Dollar'), ('XPD/USD', 'Palladium/US Dollar')], max_length=100, verbose_name='Trading Pair')),
-                ('activate_automation', models.BooleanField(default=False)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("account", models.CharField(max_length=150)),
+                ("password", models.CharField(max_length=150)),
+                ("server", models.CharField(max_length=150)),
+                (
+                    "pair",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("EUR/USD", "Euro/US Dollar"),
+                            ("USD/JPY", "US Dollar/Japanese Yen"),
+                            ("GBP/USD", "British Pound/US Dollar"),
+                            ("USD/CHF", "US Dollar/Swiss Franc"),
+                            ("USD/CAD", "US Dollar/Canadian Dollar"),
+                            ("AUD/USD", "Australian Dollar/US Dollar"),
+                            ("NZD/USD", "New Zealand Dollar/US Dollar"),
+                            ("EUR/GBP", "Euro/British Pound"),
+                            ("EUR/JPY", "Euro/Japanese Yen"),
+                            ("GBP/JPY", "British Pound/Japanese Yen"),
+                            ("AUD/JPY", "Australian Dollar/Japanese Yen"),
+                            ("NZD/JPY", "New Zealand Dollar/Japanese Yen"),
+                            ("AUD/NZD", "Australian Dollar/New Zealand Dollar"),
+                            ("AUD/CAD", "Australian Dollar/Canadian Dollar"),
+                            ("GBP/AUD", "British Pound/Australian Dollar"),
+                            ("GBP/CAD", "British Pound/Canadian Dollar"),
+                            ("EUR/AUD", "Euro/Australian Dollar"),
+                            ("USD/SGD", "US Dollar/Singapore Dollar"),
+                            ("USD/HKD", "US Dollar/Hong Kong Dollar"),
+                            ("USD/TRY", "US Dollar/Turkish Lira"),
+                            ("USD/MXN", "US Dollar/Mexican Peso"),
+                            ("USD/ZAR", "US Dollar/South African Rand"),
+                            ("USD/SEK", "US Dollar/Swedish Krona"),
+                            ("USD/DKK", "US Dollar/Danish Krone"),
+                            ("USD/NOK", "US Dollar/Norwegian Krone"),
+                            ("USD/INR", "US Dollar/Indian Rupee"),
+                            ("USD/THB", "US Dollar/Thai Baht"),
+                            ("EUR/CHF", "Euro/Swiss Franc"),
+                            ("EUR/CAD", "Euro/Canadian Dollar"),
+                            ("EUR/NZD", "Euro/New Zealand Dollar"),
+                            ("GBP/CHF", "British Pound/Swiss Franc"),
+                            ("CAD/JPY", "Canadian Dollar/Japanese Yen"),
+                            ("NZD/CAD", "New Zealand Dollar/Canadian Dollar"),
+                            ("XAU/USD", "Gold/US Dollar"),
+                            ("XAG/USD", "Silver/US Dollar"),
+                            ("XPT/USD", "Platinum/US Dollar"),
+                            ("XPD/USD", "Palladium/US Dollar"),
+                        ],
+                        max_length=100,
+                        verbose_name="Trading Pair",
+                    ),
+                ),
+                ("activate_automation", models.BooleanField(default=False)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

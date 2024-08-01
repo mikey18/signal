@@ -1,10 +1,9 @@
 from django.db import models
 from signals_auth.models import MT5Account, MT5Account_Symbols
 
-trade_results = {
-    ("profit", "profit"),
-    ("loss", "loss")
-}
+trade_results = {("profit", "profit"), ("loss", "loss")}
+
+
 class Trade_History(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     account = models.ForeignKey(MT5Account, on_delete=models.CASCADE, null=True)
@@ -17,7 +16,8 @@ class Trade_History(models.Model):
 
     def __str__(self):
         return str(self.id)
-    
+
+
 class Trade_Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     account = models.OneToOneField(MT5Account_Symbols, on_delete=models.CASCADE)
@@ -25,8 +25,3 @@ class Trade_Task(models.Model):
 
     def __str__(self):
         return str(self.id)
-    
-
-    
-
-

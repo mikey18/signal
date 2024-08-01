@@ -6,18 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notification', '0002_alter_notification_devices_registration_id'),
+        ("notification", "0002_alter_notification_devices_registration_id"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='notification_devices',
-            name='device_id',
+            model_name="notification_devices",
+            name="device_id",
             field=models.CharField(blank=True, max_length=200, unique=True),
         ),
         migrations.AlterField(
-            model_name='notification_devices',
-            name='type',
-            field=models.CharField(choices=[('web', 'web'), ('ios', 'ios'), ('android', 'android')], max_length=10),
+            model_name="notification_devices",
+            name="type",
+            field=models.CharField(
+                choices=[("web", "web"), ("ios", "ios"), ("android", "android")],
+                max_length=10,
+            ),
         ),
     ]

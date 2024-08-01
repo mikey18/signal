@@ -6,23 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('signals_auth', '0011_alter_mt5account_symbols_pair'),
+        ("signals_auth", "0011_alter_mt5account_symbols_pair"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='first_name',
-            field=models.CharField(default='Logan', max_length=120),
+            model_name="user",
+            name="first_name",
+            field=models.CharField(default="Logan", max_length=120),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='is_active',
-            field=models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active'),
+            model_name="user",
+            name="is_active",
+            field=models.BooleanField(
+                default=True,
+                help_text="Designates whether this user should be treated as active. Unselect this instead of deleting accounts.",
+                verbose_name="active",
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='last_name',
-            field=models.CharField(default='Paul', max_length=120),
+            model_name="user",
+            name="last_name",
+            field=models.CharField(default="Paul", max_length=120),
         ),
     ]
