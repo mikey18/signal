@@ -120,11 +120,15 @@ class Premium_Trade:
         open_positions = mt5.positions_get()
         symbol_positions = [position for position in open_positions if position.symbol == self.symbol]
         
-        for position in symbol_positions:
-            if position.comment.lower().startswith("signal"):
-                self.open_position = position
-                return True
-        return False
+        if symbol_positions:
+            for position in symbol_positions:
+                if position.comment.lower().startswith("signal"):
+                    self.open_position = position
+                    return True
+            return False
+        else:
+            return False
+
     
     async def check_trade_history(self):
         end_time = datetime.now()
