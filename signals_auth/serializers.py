@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, MT5Account, Brokers
+from .models import User, MT5Account
 
 
 class UserSerializer(serializers.ModelSerializer):

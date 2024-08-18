@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+SECRET_KEY = os.getenv("SECRET_KEY")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,9 +29,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = config("DEBUG", default=True, cast=bool)
-SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = True if os.getenv("DEBUG") == "True" else False
 
+# DEBUG = True if os.getenv("DEBUG") == "True" else False
+DEBUG = False
 ALLOWED_HOSTS = ["localhost", "relltrader.com", "86.48.6.77"]
 
 # Application definition
@@ -50,20 +52,8 @@ INSTALLED_APPS = [
     "notification",
 ]
 
-FIREBASE_APP = initialize_app()
-
-os.environ["GOOGLE_CLOUD_PROJECT"] = "signal-3c033"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(
-    BASE_DIR, "google-credentials.json"
-)
-
-# from firebase_admin import credentials
-# import firebase_admin
-
-# cred = credentials.Certificate(os.path.join(BASE_DIR, 'serviceAccountKey.json'))
-# FIREBASE_APP= firebase_admin.initialize_app(cred)
-
 MIDDLEWARE = [
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -92,6 +82,8 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = "signals.asgi.application"
+
 # CHANNEL_LAYERS = {
 #     'default': {
 #         'BACKEND': 'channels.layers.InMemoryChannelLayer',
@@ -109,9 +101,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-ASGI_APPLICATION = "signals.asgi.application"
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "signals_auth.User"
 
 REST_FRAMEWORK = {
@@ -119,6 +109,20 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 22,
 }
+
+FIREBASE_APP = initialize_app()
+
+os.environ["GOOGLE_CLOUD_PROJECT"] = "signal-3c033"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(
+    BASE_DIR, "google-credentials.json"
+)
+
+# from firebase_admin import credentials
+# import firebase_admin
+
+# cred = credentials.Certificate(os.path.join(BASE_DIR, 'serviceAccountKey.json'))
+# FIREBASE_APP= firebase_admin.initialize_app(cred)
+
 
 
 # Database
@@ -189,11 +193,11 @@ CELERY_TIMEZONE = "UTC"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATIC_URL = "static/"
-# STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
-# STATIC_ROOT = os.path.join(BASE_DIR, 'assets/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Media cofiguration
 # MEDIA_URL = 'media/'
@@ -201,3 +205,5 @@ STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

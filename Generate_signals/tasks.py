@@ -30,6 +30,51 @@ def signal_trade_task(
     )
 
 
+# @shared_task
+# def init_login_start(account, password, server, user_id):
+#     if not mt5.initialize(f"C:\\Program Files\\MetaTrader 5_{user_id}\\terminal64.exe"):
+#         logger.error(f"MT5 initialization failed")
+#         raise RuntimeError("MT5 initialization failed")
+#     logger.info(f"MT5 initialized successfully")
+#     login = mt5.login(
+#         login=account,
+#         password=password,
+#         server=server,
+#     )
+#     if login:
+#         logger.info("Successfully logged in to demo account")
+#         account_symbols = MT5Account_Symbols.objects.filter(
+#             account=account, active=True
+#         )
+#     else:
+#         logger.error("Failed to login to demo account")
+#         return
+
+#     for account_symbol in account_symbols:
+#         signal_trade_task.delay(
+#             master_account=account,
+#             master_password=password,
+#             master_server=server,
+#             user_id=user_id,
+#             pair=account_symbol.pair,
+#             group_name=account_symbol.group_name,
+#         )
+
+
+# @worker_ready.connect
+# def start_mt5(**kwargs):
+#     accounts = MT5Account.objects.filter(verified=True)
+
+#     atexit.register(shutdown_mt5)
+#     for account in accounts:
+#         init_login_start.delay(
+#             account=account.account,
+#             password=account.password,
+#             server=account.server.name,
+#             user_id=account.user.id,
+#         )
+
+
 @worker_ready.connect
 def start_mt5(**kwargs):
     master_account = get_if_exists(MT5Account, master=True, verified=True)
@@ -37,8 +82,9 @@ def start_mt5(**kwargs):
         logger.error(f"No master account")
         return
 
-    if not mt5.initialize():
-        # if not mt5.initialize("C:\\Program Files\\MetaTrader 5\\terminal64.exe"):
+    # if not mt5.initialize():
+
+    if not mt5.initialize("C:\\Program Files\\MetaTrader 5_2\\terminal64.exe"):
         logger.error(f"MT5 initialization failed")
         raise RuntimeError("MT5 initialization failed")
     logger.info(f"MT5 initialized successfully")
@@ -66,3 +112,5 @@ def start_mt5(**kwargs):
             pair=account_symbol.pair,
             group_name=account_symbol.group_name,
         )
+
+
