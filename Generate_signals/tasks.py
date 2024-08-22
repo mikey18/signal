@@ -84,7 +84,8 @@ def start_mt5(**kwargs):
 
     # if not mt5.initialize():
 
-    if not mt5.initialize("C:\\Program Files\\MetaTrader 5_2\\terminal64.exe"):
+    # if not mt5.initialize("C:\\Program Files\\MetaTrader 5_2\\terminal64.exe"):
+    if not mt5.initialize():
         logger.error(f"MT5 initialization failed")
         raise RuntimeError("MT5 initialization failed")
     logger.info(f"MT5 initialized successfully")
