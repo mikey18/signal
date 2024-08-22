@@ -29,8 +29,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = config("DEBUG", default=True, cast=bool)
-
-# DEBUG = True if os.getenv("DEBUG") == "True" else False
 DEBUG = False
 ALLOWED_HOSTS = ["relltrader.com", "www.relltrader.com"]
 
