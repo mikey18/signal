@@ -176,7 +176,6 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    # 'http://strangely-cheerful-lion.ngrok-free.app'
 ]
 
 # CELERY CONFIGURATIONS
@@ -187,7 +186,6 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 # CELERY CONFIGURATIONS
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
