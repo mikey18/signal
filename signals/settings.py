@@ -30,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = config("DEBUG", default=True, cast=bool)
 DEBUG = False
-ALLOWED_HOSTS = ["relltrader.com", "www.relltrader.com"]
+ALLOWED_HOSTS = ["relltrader.com", "www.relltrader.com", "86.48.6.77"]
 
 # Application definition
 INSTALLED_APPS = [
