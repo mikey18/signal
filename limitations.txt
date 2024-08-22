@@ -1,2 +1,24 @@
-THESE ARE THE FOLLOWING LIMITATIONS IM CURRENTLY FACING
+These are the current limitations the server faces:
 
+1. Broker Account Validation: When users try to connect their broker account, 
+    they send their broker information to the server. The server then tries to 
+    validate the account by logging into the terminal to check if the credentials 
+    are valid. However, since MT5 can only handle one account at a time, it disrupts 
+    any other processes happening in the background.
+
+2. Similar to the first limitation, due to the MT5 one-account-at-a-time restriction, 
+    multiple accounts cannot be used concurrently. Despite trying multiple strategies 
+    like using multiple MT5 instances, threading, multiprocessing, and asynchronous 
+    programming, these approaches haven’t fully solved the issue.
+
+Given all these challenges, efforts have been made to tackle this, but for now, 
+I found a tool online: https://www.mtsocketapi.com/index.html MTsocketAPI. 
+
+This tool provides a configuration to link to your MT5 terminal, 
+acting as an API to stream market data, send orders, and more, 
+accessible from any programming language. 
+However, the tool lacks account login functionality, which is a crucial part.
+
+At this point, I want to be realistic. The solution I’m considering is for us to build a library or interface 
+using a low-level programming language like C or C++ to have finer control over every action. 
+I’m currently researching how to achieve this but just wanted to highlight how much work this might involve for all of us.

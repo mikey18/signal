@@ -32,7 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # DEBUG = True if os.getenv("DEBUG") == "True" else False
 DEBUG = False
-ALLOWED_HOSTS = ["localhost", "relltrader.com", "86.48.6.77"]
+ALLOWED_HOSTS = ["relltrader.com", "www.relltrader.com"]
 
 # Application definition
 INSTALLED_APPS = [
