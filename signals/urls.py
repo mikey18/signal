@@ -26,7 +26,7 @@ admin.site.site_title = name
 admin.site.index_title = name
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("/rell_auth/sig/admin/", admin.site.urls),
     path("auth/", include("signals_auth.urls")),
     path("trade/", include("Generate_signals.urls")),
     path("notif/", include("notification.urls")),
