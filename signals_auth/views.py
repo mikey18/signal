@@ -32,14 +32,6 @@ load_dotenv()
 class RefreshTokenView(APIView):
     @method_decorator(jwt_required(token_type="refresh"))
     def get(self, request):
-        # refresh = RefreshTokens.objects.get(token=request.META.get("HTTP_AUTHORIZATION"))
-        # if not refresh:
-        #     return Response(
-        #         {
-        #             "msg": "Invalid auth",
-        #         },
-        #         status=status.HTTP_403_FORBIDDEN,
-        #     )
         user = get_if_exists(User, id=request.user_id)
         if not user:
              return Response(
