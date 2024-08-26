@@ -23,6 +23,8 @@ from Generate_signals.routing import url_pattern
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),
-        "websocket": AuthMiddlewareStack(URLRouter(url_pattern)),
+        "websocket": AllowedHostsOriginValidator(
+            AuthMiddlewareStack(URLRouter(url_pattern))
+        ),
     }
 )
