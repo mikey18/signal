@@ -1,6 +1,5 @@
 import asyncio
 import pandas as pd
-import vectorbt as vbt
 import MetaTrader5 as mt5
 import logging
 from datetime import datetime, timezone, timedelta
@@ -31,10 +30,10 @@ class Premium_Trade:
 
             # Calculate indicators
             # logger.info("Calculating indicators in progress...")
-            ma14 = vbt.MA.run(df["close"], 14)
-            ma50 = vbt.MA.run(df["close"], 50)
-            ma365 = vbt.MA.run(df["close"], 365)
-            rsi = vbt.RSI.run(df["close"], 14)
+            ma14 = self.vbt.MA.run(df["close"], 14)
+            ma50 = self.vbt.MA.run(df["close"], 50)
+            ma365 = self.vbt.MA.run(df["close"], 365)
+            rsi = self.vbt.RSI.run(df["close"], 14)
 
             # Check the conditions for the last bar
             # logger.info("Checking conditions in progress...\n")
@@ -538,6 +537,8 @@ class Premium_Trade:
         return login
 
     async def money_management(self, **kwargs):
+        import vectorbt as vbt
+
         logger.info(f"id {kwargs.get('user_id')}")
         self.user_id = kwargs.get("user_id")
         self.master_account = kwargs.get("master_account")
@@ -556,6 +557,7 @@ class Premium_Trade:
         trade_was_active = False
         trade_data = None
         self.open_position = False
+        self.vbt = vbt
 
         while True:
             if await self.check_open_positions():

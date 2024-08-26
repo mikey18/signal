@@ -144,7 +144,8 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=120)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    verified = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     username = None
     USERNAME_FIELD = "email"
@@ -154,6 +155,45 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+# class RefreshTokens(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.PROTECT, default=None)
+#     token = models.CharField(max_length=5000)
+
+#     def __str__(self):
+#         return self.user.email
+
+
+class OneTimePassword(models.Model):
+    user = models.OneToOneField(User, on_delete=models.PROTECT, default=None)
+    otp = models.CharField(max_length=6)
+
+    def __str__(self):
+        return self.user.email
+
+
+class OldPassword(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    password = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.user.email
+
+
+class Devices(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    user_agent = models.CharField(max_length=200)
+    language = models.CharField(max_length=200)
+    login_time = models.CharField(max_length=200, blank=True)
+    logout_time = models.CharField(max_length=200, blank=True)
+    logged_in = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.email
 
 
 class Brokers(models.Model):
@@ -169,7 +209,7 @@ class Brokers(models.Model):
 class MT5Account(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    account = models.IntegerField()
+    account = models.BigIntegerField()
     password = models.CharField(max_length=150)
     server = models.ForeignKey(Brokers, on_delete=models.CASCADE)
     activate_automation = models.BooleanField(default=False)

@@ -1,7 +1,15 @@
 from django.urls import path
-from .views import Trade_HistoryAPI
+from .views import Trade_History_Calculation_API, Trade_HistoryAPI
 
-# app_name = 'api'
 urlpatterns = [
-    path("history/", Trade_HistoryAPI.as_view(), name="trade-signals-history")
+    path(
+        "history-logic/",
+        Trade_History_Calculation_API.as_view(),
+        name="trade-history-logic",
+    ),
+    path(
+        "history/",
+        Trade_HistoryAPI.as_view(),
+        name="trade-history",
+    )
 ]

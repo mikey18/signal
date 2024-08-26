@@ -33,6 +33,10 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=68, min_length=6)
 
 
+class VerifyAccountSerializer(serializers.Serializer):
+    otp = serializers.CharField(min_length=6)
+
+
 class MT5AccountSerializer(serializers.ModelSerializer):
     server_name = serializers.CharField(source="server.name")
 

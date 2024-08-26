@@ -1,18 +1,24 @@
 from django.db import models
-from signals_auth.models import MT5Account, MT5Account_Symbols
-
-trade_results = {("profit", "profit"), ("loss", "loss")}
+from signals_auth.models import MT5Account, MT5Account_Symbols, TradingPair
 
 
 class Trade_History(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     account = models.ForeignKey(MT5Account, on_delete=models.CASCADE, null=True)
-    symbol = models.CharField(max_length=100)
+    symbol = models.CharField(
+        max_length=100,
+        choices=TradingPair.choices,
+        verbose_name="Trading Pair",
+        blank=True,
+    )
     stop_loss = models.FloatField()
     take_profit = models.FloatField()
     price = models.FloatField()
-    type = models.CharField(max_length=100)
-    result = models.CharField(max_length=15, choices=trade_results, blank=True)
+    type = models.CharField(max_length=100, choices={("BUY", "BUY"), ("SELL", "SELL")})
+    result = models.CharField(
+        max_length=15, choices={("profit", "profit"), ("loss", "loss")}, blank=True
+    )
+    balance = models.BigIntegerField(default=0)
 
     def __str__(self):
         return str(self.id)

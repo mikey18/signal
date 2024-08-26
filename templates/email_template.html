@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rell Trader</title>
+    <style>
+        body{
+            max-width: 600px;
+            margin: auto;
+        }
+        .head{
+            color: white;
+            background-color: black;
+            font-size: 25px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .bod{
+            font-size: 15px;
+            text-align: center;
+            max-width: 300px;
+            margin: auto;
+            color: black;
+        }
+        .otp{
+            font-size: 30px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="head">{{ subject }}</div>
+    <p class="bod">{{ name }}, use the otp to verify your email</p>
+    <p class="otp">{{otp_code}}</p>
+    <p>If you didn’t request this, you can ignore this email.</p>
+</body>
+</html>

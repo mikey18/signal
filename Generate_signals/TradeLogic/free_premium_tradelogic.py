@@ -1,0 +1,679 @@
+import asyncio
+import pandas as pd
+import MetaTrader5 as mt5
+import logging
+from datetime import datetime, timezone, timedelta
+
+# from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
+from channels.layers import get_channel_layer
+from functions.notifications import BATCH_PUSH_NOTIFICATION
+from Generate_signals.models import Trade_History
+from signals_auth.models import MT5Account
+
+logger = logging.getLogger(__name__)
+
+
+class Premium_Trade:
+    def __init__(self):
+        self.channel_layer = get_channel_layer()
+
+    async def get_buy_or_sell_signal(self):
+        try:
+            # while True:
+            bars = mt5.copy_rates_from(
+                self.symbol, mt5.TIMEFRAME_M1, datetime.now(timezone.utc), 365
+            )
+            df = pd.DataFrame(bars)
+            df["time"] = pd.to_datetime(df["time"], unit="s")
+            df = df.set_index("time")
+            current_price = df["close"].iloc[-1]
+
+            # Calculate indicators
+            # logger.info("Calculating indicators in progress...")
+            ma14 = self.vbt.MA.run(df["close"], 14)
+            ma50 = self.vbt.MA.run(df["close"], 50)
+            ma365 = self.vbt.MA.run(df["close"], 365)
+            rsi = self.vbt.RSI.run(df["close"], 14)
+
+            # Check the conditions for the last bar
+            # logger.info("Checking conditions in progress...\n")
+            if not (
+                ma14.ma.iloc[-1] > ma50.ma.iloc[-1] > ma365.ma.iloc[-1]
+                and rsi.rsi.iloc[-1] < 40
+            ) and not (
+                ma14.ma.iloc[-1] < ma50.ma.iloc[-1] < ma365.ma.iloc[-1]
+                and rsi.rsi.iloc[-1] > 59
+            ):
+                logger.info(
+                    f"checking for signal | account - {mt5.account_info().name} | pair - {self.symbol}"
+                )
+
+                data = {
+                    "status": False,
+                    "message": "checking for signal...",
+                    "data": {
+                        "symbol": self.symbol,
+                    },
+                }
+                await self.channel_layer.group_send(
+                    self.room, {"type": "trade.format", **data}
+                )
+                return data
+
+            elif (
+                ma14.ma.iloc[-1] > ma50.ma.iloc[-1] > ma365.ma.iloc[-1]
+                and rsi.rsi.iloc[-1] < 40
+            ):
+                logger.info("buy signal found")
+
+                data = {
+                    "status": True,
+                    "condition": "BUY",
+                    "RSI": rsi.rsi.iloc[-1],
+                    "14 SMA": ma14.ma.iloc[-1],
+                    "Current Price": current_price,
+                }
+                await self.channel_layer.group_send(
+                    self.room,
+                    {
+                        "type": "trade.format",
+                        "status": True,
+                        "message": "BUY",
+                        "data": {
+                            "symbol": self.symbol,
+                        },
+                    },
+                )
+                return data
+
+            elif (
+                ma14.ma.iloc[-1] < ma50.ma.iloc[-1] < ma365.ma.iloc[-1]
+                and rsi.rsi.iloc[-1] > 59
+            ):
+                logger.info("sell signal found")
+
+                data = {
+                    "status": True,
+                    "condition": "SELL",
+                    "RSI": rsi.rsi.iloc[-1],
+                    "14 SMA": ma14.ma.iloc[-1],
+                    "Current Price": current_price,
+                }
+                await self.channel_layer.group_send(
+                    self.room,
+                    {
+                        "type": "trade.format",
+                        "status": True,
+                        "message": "SELL",
+                        "data": {
+                            "symbol": self.symbol,
+                        },
+                    },
+                )
+                return data
+            # await asyncio.sleep(59)  # wait for 59 seconds
+        except Exception as e:
+            logger.error(f"Error in WebSocket task: {e}")
+
+    async def check_profit_or_loss(self, initial_balance):
+        # Get the new balance from the MT5 terminal
+        account_info = mt5.account_info()
+        new_balance = account_info.balance
+
+        if initial_balance < new_balance:
+            return "profit"
+        elif initial_balance > new_balance:
+            return "loss"
+        else:
+            return "no change"
+
+    async def check_open_positions(self):
+        open_positions = mt5.positions_get()
+        symbol_positions = [
+            position for position in open_positions if position.symbol == self.symbol
+        ]
+
+        if symbol_positions:
+            for position in symbol_positions:
+                if position.comment.lower().startswith("signal"):
+                    self.open_position = position
+                    return True
+            return False
+        else:
+            return False
+
+    async def check_trade_history(self):
+        end_time = datetime.now()
+        start_time = end_time - timedelta(days=30)
+        deals = mt5.history_deals_get(start_time, end_time)
+
+        if deals is None:
+            return False
+
+        self.last_closed_trade = None
+        for deal in reversed(deals):
+            if deal.symbol == self.symbol and deal.comment.lower().startswith("signal"):
+                self.last_closed_trade = deal
+                return True
+        return False
+
+    async def wait_for_trade_close(self, order_id):
+        while True:
+            # Get all active orders
+            if not await self.check_open_positions():
+                return True
+
+            logger.info(f"automated trade in progress 2 - {self.symbol}")
+            await self.channel_layer.group_send(
+                self.room,
+                {
+                    "type": "trade.format",
+                    "status": True,
+                    "message": "active trade in progress",
+                    "data": {
+                        "symbol": self.open_position.symbol,
+                        "trade_type": "BUY" if self.open_position.type == 0 else "SELL",
+                        "stop_loss": self.open_position.sl,
+                        "take_profit": self.open_position.tp,
+                        "open_price": self.open_position.price_open,
+                        "curent_price": self.open_position.price_current,
+                    },
+                },
+            )
+            await asyncio.sleep(1)  # wait for a second before checking again
+
+    async def place_trade(self, symbol, volume, sl, tp, trade_type, price):
+        try:
+            request = {
+                "action": mt5.TRADE_ACTION_DEAL,
+                "symbol": symbol,
+                "volume": volume,
+                "sl": sl,
+                "tp": tp,
+                "price": price,
+                # "price": await self.get_price(symbol, trade_type),
+                "deviation": 200,
+                "magic": 123456,
+                "type": (
+                    mt5.ORDER_TYPE_BUY if trade_type == "BUY" else mt5.ORDER_TYPE_SELL
+                ),
+                "type_filling": mt5.ORDER_FILLING_FOK,
+                "comment": f"signal.{self.current_phase}.{self.current_step}",
+            }
+            result = mt5.order_send(request)
+            return result
+        except Exception as e:
+            logger.error(f"place trade error: {e}")
+
+    async def place_buy_or_sell_trade(self, data):
+        if await self.check_open_positions():
+            return {"status": "error", "message": "There is already an open trade"}
+
+        symbol = data["symbol"]
+        volume = data["volume"]
+        sl = data["sl"]
+        tp = data["tp"]
+        condition = data["condition"]
+        price = data["price"]
+
+        logger.info(f"Placing trade - {symbol}")
+        master_result = await self.place_trade(symbol, volume, sl, tp, condition, price)
+        logger.info(master_result)
+        if master_result.retcode != mt5.TRADE_RETCODE_DONE:
+            logger.info(
+                f"trade couldn't place - {symbol} | comment - {master_result.comment} | reetcode - {master_result.retcode}"
+            )
+            return {
+                "status": "error",
+                "retcode": master_result.retcode,
+                "message": master_result.comment,
+            }
+        else:
+            logger.info(f"trade placed - {symbol}")
+            # send notification
+            BATCH_PUSH_NOTIFICATION.delay(
+                user_id=self.user_id,
+                title="Trade placed",
+                body=f"{condition.capitalize()} signal received on {self.symbol}",
+            )
+            # send notification
+            await self.channel_layer.group_send(
+                self.room,
+                {
+                    "type": "trade.format",
+                    "status": True,
+                    "message": "Signal was received and trade has been placed",
+                    "data": {
+                        "symbol": self.symbol,
+                    },
+                },
+            )
+            closed_trade = await self.wait_for_trade_close(master_result.order)
+            if closed_trade:
+                trade_status = await self.check_profit_or_loss(self.initial_balance)
+                return {
+                    "status": "success",
+                    "order": master_result.order,
+                    "retcode": master_result.retcode,
+                    "trade_status": trade_status,
+                }
+
+                # THIS IS ON HOLD
+                # if slave_accounts_trade["status"] == "success":
+                #     return {
+                #         "status": "success",
+                #         "order": slave_accounts_trade["order"],
+                #         "retcode": slave_accounts_trade["retcode"],
+                #         "trade_status": slave_accounts_trade["trade_status"]
+                #     }
+
+    async def get_price(self, symbol, trade_type):
+        tick_info = mt5.symbol_info_tick(symbol)
+        price = tick_info.ask if trade_type == "BUY" else tick_info.bid
+        return price
+
+    async def convert_pips_to_price(self, price, pips, point):
+        return price + (pips * point)
+
+    async def calculate_initial_lot_size(self, balance):
+        risk = 0.001
+        stop_loss_pips = 250
+        self.initial_balance = balance
+        money_to_risk = self.initial_balance * risk
+
+        if type(money_to_risk) is int:
+            initial_lot_size = round((money_to_risk / stop_loss_pips), 1)
+            return initial_lot_size
+        elif type(money_to_risk) is float:
+            calculation = money_to_risk / stop_loss_pips
+            if calculation < 0.01:
+                initial_lot_size = 0.01
+                return initial_lot_size
+            else:
+                initial_lot_size = await self.convert_to_two_decimal_places(calculation)
+                return initial_lot_size
+
+    async def PHASES_DATA(self, initial_lot_size):
+        phases = {
+            1: [
+                (1 * initial_lot_size, 250, 750),
+                (1 * initial_lot_size, 250, 750),
+                (1 * initial_lot_size, 500, 1500),
+                (1 * initial_lot_size, 1000, 3000),
+            ]
+        }
+
+        # Calculate subsequent phases
+        for phase in range(2, 13):
+            previous_phase_value = phases[phase - 1][0][
+                0
+            ]  # Get the first value of the previous phase
+            current_phase_value = 2 * previous_phase_value
+            phases[phase] = [
+                (current_phase_value, 250, 750),
+                (current_phase_value, 250, 750),
+                (current_phase_value, 500, 1500),
+                (current_phase_value, 1000, 3000),
+            ]
+
+        return phases
+
+    async def get_sl_tp_lot_size(self, initial_lot_size, condition, price):
+        # Get the lot size, stop loss, and take profit for the current phase and step
+        phases = await self.PHASES_DATA(initial_lot_size)
+        lot_size, stop_loss_pips, take_profit_pips = phases[self.current_phase + 1][
+            self.current_step
+        ]
+
+        # Get the current price
+        point = mt5.symbol_info(self.symbol).point
+
+        # Calculate the stop loss and take profit prices
+        multiplier = 1 if condition == "BUY" else -1
+        stop_loss = await self.convert_pips_to_price(
+            price, multiplier * -stop_loss_pips, point
+        )
+        take_profit = await self.convert_pips_to_price(
+            price, multiplier * take_profit_pips, point
+        )
+
+        return stop_loss, take_profit, lot_size
+
+    async def convert_to_two_decimal_places(self, value):
+        async def has_more_than_two_decimal_places(value):
+            # Convert the value to a string to check the number of decimal places
+            str_value = str(value)
+
+            # Check if the value has a decimal point
+            if "." in str_value:
+                # Split the string into the integer and decimal parts
+                parts = str_value.split(".")
+                # Check if the decimal part has more than two digits
+                return len(parts[1]) > 2
+            return False
+
+        if await has_more_than_two_decimal_places(value):
+            # Use round() to round the value to two decimal places
+            value = round(value, 2)
+        return value
+
+    async def save_to_db(
+        self,
+        symbol,
+        stop_loss,
+        take_profit,
+        open_price,
+        trade_type,
+        trade_status,
+        account_balance,
+    ):
+        account = await database_sync_to_async(MT5Account.objects.get)(
+            user__id=self.user_id
+        )
+        await database_sync_to_async(Trade_History.objects.create)(
+            account=account,
+            symbol=symbol,
+            stop_loss=stop_loss,
+            take_profit=take_profit,
+            price=open_price,
+            type=trade_type,
+            result=trade_status,
+            balance=account_balance,
+        )
+
+    async def adjust_phases_and_steps(self, trade_status):
+        async def set_initial_balances():
+            phase = self.current_phase + 1
+            balance = mt5.account_info().balance
+
+            if phase in self.all_steps_balances:
+                self.all_steps_balances[phase].append(balance)
+            else:
+                self.all_steps_balances[phase] = [balance]
+
+        async def process_profit():
+            new_balance = mt5.account_info().balance
+            is_new_balance_greater_or_equal = False
+
+            if new_balance >= self.max_balance:
+                logger.info(
+                    f"\n New balance - {new_balance} is greater than max balance - {self.max_balance} | setting new max balance"
+                )
+                self.all_steps_balances = {}
+                self.current_phase = 0
+                self.current_step = 0
+                self.max_balance = new_balance
+                self.max_balance_indicator = True
+                logger.info(
+                    f"\n Resetting to Phase - {self.current_phase}, Step - {self.current_step}"
+                )
+            else:
+                # loop both each phase and the respecttive steps
+                for phase, steps in self.all_steps_balances.items():
+                    # after it loops a phase, this loops the steps
+                    for step in steps:
+                        # checks if new balance is greater than or equal to a step
+                        if new_balance >= step:
+                            is_new_balance_greater_or_equal = True
+                            logger.info(
+                                f"\nfound comparable value | setting step to {steps.index(step)} (index) | phase {phase}"
+                            )
+
+                            # since new balance is greter than step, it saves the phase to this current phase, so as the step
+                            self.current_phase = phase - 1
+                            self.current_step = steps.index(step)
+
+                            # adjusts the inital balances to remove the unwanted phases and their step balances
+                            for i in range(0, (len(self.all_steps_balances) + 1)):
+                                if i > phase:
+                                    self.all_steps_balances.pop(i)
+
+                            # adjusts the inital balance to remove the unwanted steps balances
+                            mini_phase = self.all_steps_balances[phase]
+                            self.all_steps_balances[phase] = [
+                                i for i in mini_phase if i >= step
+                            ]
+                            break
+                        else:
+                            logger.info(
+                                f"Remain in same phase - {phase} and step - {self.current_step}"
+                            )
+
+                    if is_new_balance_greater_or_equal:
+                        break
+
+        if trade_status == "loss":
+            await set_initial_balances()
+
+            if self.current_step < 3:
+                self.current_step += 1
+            else:
+                if self.current_phase < 11:
+                    self.current_phase += 1
+                else:
+                    self.all_steps_balances = {}
+                    self.current_phase = 0
+                self.current_step = 0
+
+        elif trade_status == "profit":
+            await process_profit()
+
+    async def money_management(self, **kwargs):
+        import vectorbt as vbt
+
+        logger.info(f"id {kwargs.get('user_id')}")
+        self.user_id = kwargs.get("user_id")
+        self.master_account = kwargs.get("master_account")
+        self.master_password = kwargs.get("master_password")
+        self.master_server = kwargs.get("master_server")
+        self.symbol = kwargs.get("pair")
+        self.room = kwargs.get("group_name")
+
+        self.initial_balance = mt5.account_info().balance
+        self.max_balance = mt5.account_info().balance
+        self.max_balance_indicator = True
+        self.all_steps_balances = {}
+        self.initial_lot_size = 0
+        self.current_phase = 0
+        self.current_step = 0
+        trade_was_active = False
+        trade_data = None
+        self.open_position = False
+        self.vbt = vbt
+
+        while True:
+            if await self.check_open_positions():
+                trade_was_active = True
+                logger.info(f"automated trade in progress 1 - {self.symbol}")
+                trade_data = {
+                    "symbol": self.open_position.symbol,
+                    "trade_type": "BUY" if self.open_position.type == 0 else "SELL",
+                    "stop_loss": self.open_position.sl,
+                    "take_profit": self.open_position.tp,
+                    "open_price": self.open_position.price_open,
+                    "lot_size": self.open_position.volume,
+                }
+                await self.channel_layer.group_send(
+                    self.room,
+                    {
+                        "type": "trade.format",
+                        "status": True,
+                        "message": "active trade in progress",
+                        "data": {
+                            **trade_data,
+                            "curent_price": self.open_position.price_current,
+                        },
+                    },
+                )
+                await asyncio.sleep(1)
+                continue
+
+            # Checks if active trade was from signal server
+            if trade_was_active:
+                await self.channel_layer.group_send(
+                    self.room,
+                    {
+                        "type": "trade.format",
+                        "status": True,
+                        "message": "Trade completed",
+                        "data": {
+                            "symbol": self.open_position.symbol,
+                            "result": await self.check_profit_or_loss(
+                                self.initial_balance
+                            ),  # trade_status will be either "profit" or "loss"
+                            "trade_type": trade_data["trade_type"],
+                            "current_phase": self.current_phase + 1,  # int
+                            "current_step": self.current_step,  # int
+                            "lot_size": trade_data["lot_size"],  # float
+                            "stop_loss": trade_data["stop_loss"],  # float
+                            "take_profit": trade_data["take_profit"],  # float
+                            "new_account_balance": mt5.account_info().balance,  # float
+                        },
+                    },
+                )
+                # Save trade to db
+                logger.info(f"saving to db 1 - {self.symbol}")
+                trade_status = await self.check_profit_or_loss(self.initial_balance)
+                await self.save_to_db(
+                    trade_data["symbol"],
+                    trade_data["stop_loss"],
+                    trade_data["take_profit"],
+                    trade_data["open_price"],
+                    trade_data["trade_type"],
+                    trade_status,
+                    mt5.account_info().balance,
+                )
+
+                parts = self.open_position.comment.lower().split(".")
+                logger.info(f"{parts} - {self.symbol}")
+                self.current_phase = int(parts[1])
+                self.current_step = int(parts[2])
+
+                self.open_position = False
+                trade_was_active = False
+                trade_data = None
+
+                # adjust phases and steps
+                await self.adjust_phases_and_steps(trade_status)
+                logger.info(self.all_steps_balances)
+
+            # Checks if active trade was from signal server
+            # Call the signal API
+            signal_response = await self.get_buy_or_sell_signal()
+
+            # If the signal is not "buy" or "sell", skip this iteration
+            if signal_response["status"] is False:
+                await asyncio.sleep(59)
+                continue
+
+            BATCH_PUSH_NOTIFICATION.delay(
+                title="Signal received",
+                body=f"{signal_response["condition"].capitalize()} signal received on {self.symbol}",
+            )
+
+            # Get the lot size, stop loss, and take profit for the current phase and step
+            # Get the current price
+            price = await self.get_price(self.symbol, signal_response["condition"])
+
+            # Calculate the stop loss and take profit prices
+            if (
+                self.current_phase == 0
+                and self.current_step == 0
+                and self.max_balance_indicator
+            ):
+                logger.info(
+                    f"System is in phase - {self.current_phase}, step - {self.current_step} | SETTING THE INITIAL LOT SIZE."
+                )
+                self.initial_lot_size = await self.calculate_initial_lot_size(
+                    mt5.account_info().balance
+                )
+                logger.info(f"INITIAL LOT SIZE = {self.initial_lot_size}")
+                self.max_balance_indicator = False
+            else:
+                logger.info(
+                    f"System is in phase - {self.current_phase}, step - {self.current_step} | KEEP THE INITIAL LOT SIZE."
+                )
+                logger.info(f"INITIAL LOT SIZE = {self.initial_lot_size}")
+
+            sl, tp, lot_size = await self.get_sl_tp_lot_size(
+                self.initial_lot_size, signal_response["condition"], price
+            )
+            logger.info(
+                f"price - {price} | sl - {sl} | tp - {tp} | lot size - {lot_size}"
+            )
+
+            # Define the trade request
+            trade_request = {
+                "symbol": self.symbol,
+                "volume": lot_size,
+                "sl": sl,
+                "tp": tp,
+                "condition": signal_response["condition"],
+                "price": price,
+            }
+
+            # Send the trade request to the appropriate API and get the trade result
+            if (
+                signal_response["condition"] == "BUY"
+                or signal_response["condition"] == "SELL"
+            ):
+                response = await self.place_buy_or_sell_trade(trade_request)
+
+            # Check the response
+            if response["status"] == "success":
+                # Save trade to db
+                logger.info(f"saving to db 2 - {self.symbol}")
+                await self.save_to_db(
+                    self.symbol,
+                    sl,
+                    tp,
+                    price,
+                    signal_response["condition"],
+                    response["trade_status"],
+                    mt5.account_info().balance,
+                )
+
+                # adjust phases and steps
+                parts = self.open_position.comment.lower().split(".")
+                logger.info(f"{parts} - {self.symbol}")
+                await self.adjust_phases_and_steps(response["trade_status"])
+                logger.info(self.all_steps_balances)
+
+                await self.channel_layer.group_send(
+                    self.room,
+                    {
+                        "type": "trade.format",
+                        "status": True,
+                        "message": "Trade completed",
+                        "data": {
+                            "symbol": self.symbol,
+                            "result": response[
+                                "trade_status"
+                            ],  # trade_status will be either "profit" or "loss"
+                            "trade_type": signal_response["condition"],
+                            "current_phase": self.current_phase + 1,  # int
+                            "current_step": self.current_step,  # int
+                            "lot_size": lot_size,  # float
+                            "stop_loss": sl,  # float
+                            "take_profit": tp,  # float
+                            "new_account_balance": mt5.account_info().balance,  # float
+                        },
+                    },
+                )
+            else:
+                await self.channel_layer.group_send(
+                    self.room,
+                    {
+                        "type": "trade.format",
+                        "status": False,
+                        "message": f"Trade request failed - {self.symbol} - {response['message']}",
+                        "data": {
+                            "symbol": self.symbol,
+                        },
+                    },
+                )
+            await asyncio.sleep(59)
+
+    def initiate_system(self, **kwargs):
+        asyncio.run(self.money_management(**kwargs))

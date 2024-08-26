@@ -29,8 +29,9 @@ def send_notification_sync(**kwargs):
         device.delete()
 
 
-def PUSH_NOTIFICATION(**kwargs):
-    devices = Notification_Devices.objects.filter(user__id=kwargs.get("user_id"))
+@shared_task
+def BATCH_PUSH_NOTIFICATION(**kwargs):
+    devices = Notification_Devices.objects.all()
     for device in devices:
         send_notification_sync.delay(
             title=kwargs.get("title"),

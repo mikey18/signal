@@ -14,4 +14,5 @@ class Trade_HistorySerializer(serializers.ModelSerializer):
             "price",
             "type",
             "result",
+            "balance"
         ]
