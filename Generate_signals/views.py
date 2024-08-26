@@ -10,6 +10,7 @@ from utils.CustomQuery import get_if_exists
 from signals_auth.models import User, MT5Account
 from signals_auth.utils.auth_utils import jwt_required
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 
 @method_decorator(gzip_page, name="dispatch")
@@ -17,9 +18,10 @@ class Trade_History_Calculation_API(APIView):
     def calculate_profit(self, days):
         # Find the last balance from 'days' ago
         start_date = datetime.now() - timedelta(days=days)
+        aware_datetime = timezone.make_aware(start_date)
         start_balance = (
             Trade_History.objects.filter(
-                account=self.account, created_at__lte=start_date
+                account=self.account, created_at__lte=aware_datetime
             )
             .order_by("created_at")
             .values("balance")
