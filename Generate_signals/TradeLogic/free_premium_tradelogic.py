@@ -569,7 +569,7 @@ class Premium_Trade:
 
             BATCH_PUSH_NOTIFICATION.delay(
                 title="Signal received",
-                body=f"{signal_response["condition"].capitalize()} signal received on {self.symbol}",
+                body=f"{signal_response['condition'].capitalize()} signal received on {self.symbol}",
             )
 
             # Get the lot size, stop loss, and take profit for the current phase and step
