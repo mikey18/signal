@@ -40,8 +40,14 @@ class RefreshTokenView(APIView):
         #         },
         #         status=status.HTTP_403_FORBIDDEN,
         #     )
-
         user = get_if_exists(User, id=request.user_id)
+        if not user:
+             return Response(
+                {
+                    "msg": "Invalif auth",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         return Response(
             {
                 "status": 200,
