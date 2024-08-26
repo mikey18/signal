@@ -36,7 +36,7 @@ ALLOWED_HOSTS = [
 ]
 
 INSTALLED_APPS = [
-    "daphne",
+    # "daphne",
     "channels",
     "corsheaders",
     "rest_framework",
