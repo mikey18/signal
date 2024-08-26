@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 ALLOWED_HOSTS = [
-    "relltrader_servers"
+    "relltrader"
     # "localhost",
     # "relltrader.com",
     # "www.relltrader.com",
@@ -189,8 +189,9 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-CORS_ALLOW_ALL_ORIGINS = True
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
 
 # CELERY CONFIGURATIONS
 CELERY_BROKER_URL = "redis://localhost:6379/0"
