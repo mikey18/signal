@@ -31,8 +31,8 @@ DEBUG = False
 ALLOWED_HOSTS = [
     "relltrader"
     # "localhost",
-    # "relltrader.com",
-    # "www.relltrader.com",
+    "relltrader.com",
+    "www.relltrader.com",
     #  "86.48.6.77"
 ]
 
