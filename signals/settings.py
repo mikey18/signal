@@ -27,11 +27,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = [
-    "localhost",
-    #  "relltrader.com",
-    #  "www.relltrader.com",
+    # "localhost",
+    "relltrader.com",
+    "www.relltrader.com",
     #  "86.48.6.77"
 ]
 
@@ -95,7 +95,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [("localhost", 6379)],  # Replace with your Redis host and port
-            "capacity": 1000000000000000000,  # Optional (default = 100)
+            "capacity": 100000000,  # Optional (default = 100)
             "expiry": 60,  # Optional (default = 60)
         },
     },

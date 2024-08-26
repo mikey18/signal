@@ -157,12 +157,12 @@ class User(AbstractUser):
         return self.email
 
 
-# class RefreshTokens(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.PROTECT, default=None)
-#     token = models.CharField(max_length=5000)
+class RefreshTokens(models.Model):
+    user = models.ForeignKey(User, on_delete=models.PROTECT, default=None)
+    token = models.CharField(max_length=5000)
 
-#     def __str__(self):
-#         return self.user.email
+    def __str__(self):
+        return self.user.email
 
 
 class OneTimePassword(models.Model):

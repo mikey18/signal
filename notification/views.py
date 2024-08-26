@@ -4,11 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from notification.models import Notification_Devices
-from functions.CustomQuery import get_if_exists
+from utils.CustomQuery import get_if_exists
 from signals_auth.utils.auth_utils import jwt_required
 from django.utils.decorators import method_decorator
 from signals_auth.models import User
-from functions.notifications import BATCH_PUSH_NOTIFICATION
+from utils.notifications import BATCH_PUSH_NOTIFICATION
 from django.utils.decorators import method_decorator
 
 

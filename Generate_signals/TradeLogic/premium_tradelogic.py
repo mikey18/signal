@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from functions.notifications import PUSH_NOTIFICATION
+from utils.notifications import BATCH_PUSH_NOTIFICATION
 from Generate_signals.models import Trade_History
 from signals_auth.models import MT5Account
 
@@ -236,7 +236,7 @@ class Premium_Trade:
         for account in accounts:
             user = await database_sync_to_async(lambda: account.user)()
             await self.login_and_place_trade_slave(user, symbol, trade_type, price)
-            await sync_to_async(PUSH_NOTIFICATION)(
+            BATCH_PUSH_NOTIFICATION.delay(
                 user_id=user.id,
                 title="Trade placed",
                 body=f"{trade_type.capitalize()} signal received on {self.symbol}",
@@ -288,7 +288,7 @@ class Premium_Trade:
             # slave_accounts_trade = await self.place_trade_slave_accounts(symbol, condition, price, master_result)
             # THIS IS ON HOLD
             # # send notification
-            await sync_to_async(PUSH_NOTIFICATION)(
+            BATCH_PUSH_NOTIFICATION(
                 user_id=self.user_id,
                 title="Trade placed",
                 body=f"{condition.capitalize()} signal received on {self.symbol}",
@@ -430,7 +430,14 @@ class Premium_Trade:
         return value
 
     async def save_to_db(
-        self, symbol, stop_loss, take_profit, open_price, trade_type, initial_balance
+        self,
+        symbol,
+        stop_loss,
+        take_profit,
+        open_price,
+        trade_type,
+        trade_status,
+        account_balance,
     ):
         account = await database_sync_to_async(MT5Account.objects.get)(
             user__id=self.user_id
@@ -442,7 +449,8 @@ class Premium_Trade:
             take_profit=take_profit,
             price=open_price,
             type=trade_type,
-            result=initial_balance,
+            result=trade_status,
+            balance=account_balance,
         )
 
     async def adjust_phases_and_steps(self, trade_status):
@@ -619,6 +627,7 @@ class Premium_Trade:
                     trade_data["open_price"],
                     trade_data["trade_type"],
                     trade_status,
+                    mt5.account_info().balance,
                 )
 
                 parts = self.open_position.comment.lower().split(".")
@@ -712,6 +721,7 @@ class Premium_Trade:
                     price,
                     signal_response["condition"],
                     response["trade_status"],
+                    mt5.account_info().balance,
                 )
 
                 # adjust phases and steps

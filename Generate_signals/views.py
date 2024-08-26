@@ -6,7 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
 from .models import Trade_History
 from .serializers import Trade_HistorySerializer
-from functions.CustomQuery import get_if_exists
+from utils.CustomQuery import get_if_exists
 from signals_auth.models import User, MT5Account
 from signals_auth.utils.auth_utils import jwt_required
 from datetime import datetime, timedelta
@@ -67,10 +67,12 @@ class Trade_History_Calculation_API(APIView):
         except Exception as e:
             print(str(e))
 
+
 class CustomCursorPagination(CursorPagination):
     ordering = "-created_at"
     page_size = 1
-    
+
+
 @method_decorator(gzip_page, name="dispatch")
 class Trade_HistoryAPI(APIView, CustomCursorPagination):
     @method_decorator(jwt_required(token_type="access"))

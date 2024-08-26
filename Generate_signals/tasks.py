@@ -1,7 +1,7 @@
 from celery.signals import worker_ready
 from celery import shared_task
 from .TradeLogic.free_premium_tradelogic import Premium_Trade
-from functions.CustomQuery import get_if_exists
+from utils.CustomQuery import get_if_exists
 import MetaTrader5 as mt5
 import logging
 import atexit

@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import logging
 from signals_auth.utils.auth_utils import auth_decoder, jwt_required_ws
 from signals_auth.models import User, MT5Account, MT5Account_Symbols
-from functions.CustomQuery import get_if_exists
+from utils.CustomQuery import get_if_exists
 from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 

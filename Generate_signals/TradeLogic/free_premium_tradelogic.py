@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 # from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from functions.notifications import BATCH_PUSH_NOTIFICATION
+from utils.notifications import BATCH_PUSH_NOTIFICATION
 from Generate_signals.models import Trade_History
 from signals_auth.models import MT5Account
 
@@ -545,17 +545,17 @@ class Premium_Trade:
                     mt5.account_info().balance,
                 )
 
-                parts = self.open_position.comment.lower().split(".")
-                logger.info(f"{parts} - {self.symbol}")
-                self.current_phase = int(parts[1])
-                self.current_step = int(parts[2])
+                # parts = self.open_position.comment.lower().split(".")
+                # logger.info(f"{parts} - {self.symbol}")
+                # self.current_phase = int(parts[1])
+                # self.current_step = int(parts[2])
 
                 self.open_position = False
                 trade_was_active = False
                 trade_data = None
 
                 # adjust phases and steps
-                await self.adjust_phases_and_steps(trade_status)
+                # await self.adjust_phases_and_steps(trade_status)
                 logger.info(self.all_steps_balances)
 
             # Checks if active trade was from signal server

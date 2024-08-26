@@ -11,5 +11,5 @@ urlpatterns = [
         "history/",
         Trade_HistoryAPI.as_view(),
         name="trade-history",
-    )
+    ),
 ]

@@ -1,0 +1,39 @@
+## Handling Token Management and API Requests wheu User Login
+
+When a user logs in for the first time, both an **ACCESS** and a **REFRESH** token are received. 
+
+login email and password shouldnt be stored in the `SecureStorage`
+
+- The **REFRESH** token is securely stored using Flutter's `SecureStorage`, while the **ACCESS** token is held in a global variable accessible across all components.
+- The **ACCESS** token is short-lived, while the **REFRESH** token is long-lived.
+
+For any API requests that require authorization, the **ACCESS** token must be included in the authorization header.
+
+Given that the **ACCESS** token is short-lived, if a request returns a `403 Forbidden` response, it indicates that the **ACCESS** token has expired. In such cases, you need to refresh the token by sending the **REFRESH** token (retrieved from secure storage) in the authorization header to the designated "refresh" API endpoint. Upon receiving a new **ACCESS** token, update the global variable and proceed with your request.
+
+You might be wondering: *“How can I seamlessly handle refreshing tokens without duplicating the logic in all my API calls?”* 
+
+The answer lies in using interceptors. Most HTTP packages in Flutter support interceptors, which can automate this process.
+
+### Implementation:
+
+You can create a base request function that wraps all your API calls. This base function will handle the response and determine if it’s a `200` (success) or a `403` (token expired):
+
+- If the response is `200`, the request proceeds as usual.
+- If the response is `403`, the function automatically triggers the token refresh process by calling the refresh endpoint, updates the global **ACCESS** token, and retries the original request seamlessly.
+
+Websockets endpoints will be authorized by putting the **ACCESS** token in the url like this "wss://server/url/?ACCESS_TOKEN
+
+
+
+## Handling Token Management and API Requests After App Re-Open
+
+When a user opens the app after having logged in previously (e.g., several days ago), the **ACCESS** token stored in the global variable will be empty. This poses a challenge for API requests requiring the **ACCESS** token.
+
+To address this:
+
+- Your interceptor should first check if the **ACCESS** token global variable is empty before making any API requests. If it is empty, the interceptor will automatically call the refresh endpoint to obtain a new **ACCESS** token. Once refreshed and stored in the global variable, the original request is retried seamlessly.
+  
+- For services like WebSocket connections, which also depend on the **ACCESS** token, the connection process should wait until the **ACCESS** token Global variable, is populated before proceeding to establish a connection with the server.
+
+https://docs.google.com/document/d/1s1RauWNr59PCRXsYQ8Ptg7KDAYG3uEC4rFj2w1FqNVg/edit?usp=sharing

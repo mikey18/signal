@@ -14,7 +14,7 @@ from .serializers import (
 from .models import OneTimePassword, Devices, OldPassword
 from datetime import datetime, timezone
 from .utils.auth_utils import access_refresh_token, jwt_required, get_tokens
-from functions.CustomQuery import get_if_exists
+from utils.CustomQuery import get_if_exists
 from Generate_signals.tasks import signal_trade_task
 from django.contrib.auth.models import update_last_login
 from notification.models import Notification_Devices
@@ -22,8 +22,9 @@ import MetaTrader5 as mt5
 from dotenv import load_dotenv
 from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
-from functions.email import HandleEmail
+from utils.email import HandleEmail
 from django.contrib.auth.hashers import check_password
+
 
 load_dotenv()
 
@@ -31,6 +32,15 @@ load_dotenv()
 class RefreshTokenView(APIView):
     @method_decorator(jwt_required(token_type="refresh"))
     def get(self, request):
+        # refresh = RefreshTokens.objects.get(token=request.META.get("HTTP_AUTHORIZATION"))
+        # if not refresh:
+        #     return Response(
+        #         {
+        #             "msg": "Invalid auth",
+        #         },
+        #         status=status.HTTP_403_FORBIDDEN,
+        #     )
+
         user = get_if_exists(User, id=request.user_id)
         return Response(
             {
@@ -309,7 +319,6 @@ class UpdateUser(APIView):
 
 @method_decorator(gzip_page, name="dispatch")
 class LogoutAPIView(APIView):
-
     @method_decorator(jwt_required(token_type="access"))
     def post(self, request):
         try:
