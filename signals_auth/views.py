@@ -44,7 +44,7 @@ class RefreshTokenView(APIView):
         if not user:
              return Response(
                 {
-                    "msg": "Invalif auth",
+                    "msg": "Invalid auth",
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
