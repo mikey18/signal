@@ -185,7 +185,8 @@ EMAIL_USE_SSL = True
 
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost",
+    "http://relltrader.com",
+    "https://relltrader.com",
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
