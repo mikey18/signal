@@ -65,7 +65,7 @@ class Trade_History_Calculation_API(APIView):
                 30: self.calculate_profit(30),
                 90: self.calculate_profit(90),
             }
-            return Response({"status": 200, "data": data})
+            return Response({"data": data})
         except Exception as e:
             print(str(e))
 

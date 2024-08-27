@@ -237,7 +237,7 @@ class ChangePasswordAPI(APIView):
             user.set_password(request.data["password"])
             user.is_verified = True
             user.save()
-            return Response({"status": 200})
+            return Response({"msg": "ok"})
         except Exception as e:
             print(str(e))
             return Response(
