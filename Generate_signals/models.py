@@ -21,7 +21,7 @@ class Trade_History(models.Model):
     balance = models.DecimalField(decimal_places=2, max_digits=30)
 
     def __str__(self):
-        return str(self.id)
+        return f"{self.created_at} --- {self.type} --- {self.balance}"
 
 
 class Trade_Task(models.Model):
