@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv("SECRET_KEY")
 ALLOWED_HOSTS = [
     "relltrader"
     # "localhost",
@@ -186,7 +186,6 @@ EMAIL_USE_SSL = True
 
 CSRF_TRUSTED_ORIGINS = [
     "http://relltrader.com",
-    "https://relltrader.com",
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 

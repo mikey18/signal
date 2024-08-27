@@ -49,14 +49,14 @@ class Trade_History_Calculation_API(APIView):
 
             if not user:
                 return Response(
-                    {"status": 400, "msg": "Not Authorized"},
+                    {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             self.account = get_if_exists(MT5Account, master=True)
             if not self.account:
                 return Response(
-                    {"status": 400, "msg": "Error"},
+                    {"msg": "Error"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -84,14 +84,14 @@ class Trade_HistoryAPI(APIView, CustomCursorPagination):
 
             if not user:
                 return Response(
-                    {"status": 400, "msg": "Not Authorized"},
+                    {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             account = get_if_exists(MT5Account, master=True)
             if not account:
                 return Response(
-                    {"status": 400, "msg": "Trade Account not found"},
+                    {"msg": "Trade Account not found"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -104,6 +104,6 @@ class Trade_HistoryAPI(APIView, CustomCursorPagination):
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

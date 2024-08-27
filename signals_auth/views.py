@@ -42,7 +42,6 @@ class RefreshTokenView(APIView):
             )
         return Response(
             {
-                "status": 200,
                 "access": access_refresh_token(user, "access"),
             }
         )
@@ -57,7 +56,7 @@ class RegisterView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         HandleEmail.delay(user.id, user.email, user.first_name, "create")
-        return Response({"status": 200, "msg": "Successful", "user": serializer.data})
+        return Response({"msg": "Successful", "user": serializer.data})
 
 
 @method_decorator(gzip_page, name="dispatch")
@@ -66,7 +65,7 @@ class LoginAPIView(APIView):
 
     def bad_response(self):
         return Response(
-            {"status": 400, "msg": "Invalid email or password"},
+            {"msg": "Invalid email or password"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -111,7 +110,7 @@ class LoginAPIView(APIView):
         devices.logged_in = True
         devices.save()
 
-        return Response({"status": 200, **get_tokens(user)})
+        return Response(get_tokens(user))
 
 
 @method_decorator(gzip_page, name="dispatch")
@@ -126,7 +125,6 @@ class VerifyOTP(APIView):
             if not user:
                 return Response(
                     {
-                        "status": 400,
                         "msg": "Invalid user",
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -136,7 +134,6 @@ class VerifyOTP(APIView):
             if serializer.data["otp"] != user_token.otp:
                 return Response(
                     {
-                        "status": 400,
                         "msg": "Invalid otp",
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -153,11 +150,11 @@ class VerifyOTP(APIView):
 
             user.is_verified = True
             user.save()
-            return Response({"status": 200, **get_tokens(user)})
+            return Response(get_tokens(user))
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -167,7 +164,6 @@ class ResetPasswordAPI(APIView):
     def res(self, email):
         return Response(
             {
-                "status": 200,
                 "msg": f"If an account exists for {email}, you will receive an otp.",
             }
         )
@@ -187,20 +183,17 @@ class ResetPasswordAPI(APIView):
 class ChangePasswordAPI(APIView):
     def error_msg(self):
         return {
-            "status": 400,
-            "message": "Error, try again later",
+            "msg": "Error, try again later",
         }
 
     def error_msg2(self):
         return {
-            "status": 400,
-            "message": "Invalid otp",
+            "msg": "Invalid otp",
         }
 
     def error_msg3(self):
         return {
-            "status": 400,
-            "message": "Cannot use this password",
+            "msg": "Cannot use this password",
         }
 
     def post(self, request):
@@ -248,7 +241,7 @@ class ChangePasswordAPI(APIView):
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -262,7 +255,7 @@ class UserView(APIView):
 
             if not user:
                 return Response(
-                    {"status": 400, "msg": "Not Authorized"},
+                    {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             # acc = get_if_exists(MT5Account, user=user)
@@ -272,7 +265,6 @@ class UserView(APIView):
             #     data = MT5AccountSerializer(acc).data
             return Response(
                 {
-                    "status": 200,
                     "data": UserSerializer(user).data,
                     # "trade_account_data": data,
                 }
@@ -280,7 +272,7 @@ class UserView(APIView):
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -294,7 +286,7 @@ class UpdateUser(APIView):
 
             if not user:
                 return Response(
-                    {"status": 400, "msg": "Not Authorized"},
+                    {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -303,14 +295,13 @@ class UpdateUser(APIView):
             user.save()
             return Response(
                 {
-                    "status": 200,
                     "data": UserSerializer(user).data,
                 }
             )
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -327,15 +318,15 @@ class LogoutAPIView(APIView):
 
             if not user or not device:
                 return Response(
-                    {"status": 400, "msg": "Not Authorized"},
+                    {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             device.delete()
-            return Response({"status": 200, "msg": "Logout Successful"})
+            return Response({"msg": "Logout Successful"})
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -348,13 +339,13 @@ class Connect_MT5_Account(APIView):
             broker = get_if_exists(Brokers, id=request.data["server"])
             if not broker:
                 return Response(
-                    {"status": 400, "msg": "Broker does not exist"},
+                    {"msg": "Broker does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
             if not mt5.initialize():
                 return Response(
-                    {"status": 400, "msg": "Terminal Error"},
+                    {"msg": "Terminal Error"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -366,7 +357,7 @@ class Connect_MT5_Account(APIView):
 
             if not login_status:
                 return Response(
-                    {"status": 400, "msg": "Trade account does not exist"},
+                    {"msg": "Trade account does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -387,12 +378,12 @@ class Connect_MT5_Account(APIView):
                     verified=True,
                 )
             mt5.shutdown()
-            return Response({"status": 200, "data": MT5AccountSerializer(account).data})
+            return Response({"data": MT5AccountSerializer(account).data})
 
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -419,7 +410,7 @@ class Activate_Automation(APIView):
                 account.activate_automation = True
                 account.save()
 
-                return Response({"status": 200, "msg": "Activation success"})
+                return Response({"msg": "Activation success"})
 
             elif request.data["activate"] is False:
                 task = get_if_exists(Trade_Task, account=account)
@@ -429,17 +420,17 @@ class Activate_Automation(APIView):
                 account.activate_automation = False
                 account.save()
 
-                return Response({"status": 200, "msg": "De-activation success"})
+                return Response({"msg": "De-activation success"})
             else:
                 return Response(
-                    {"status": 400, "msg": "Bad request"},
+                    {"msg": "Bad request"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -453,7 +444,7 @@ class Get_Broker_ServersAPI(APIView):
 
     @method_decorator(jwt_required(token_type="access"))
     def get(self, request):
-        return Response({"status": 200, "data": self.brokers_list()})
+        return Response({"data": self.brokers_list()})
 
 
 # from django.views.generic import View

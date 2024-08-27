@@ -21,7 +21,7 @@ class Register_Push_Notification(APIView):
 
             if not user:
                 return Response(
-                    {"status": 400, "msg": "Not Authorized"},
+                    {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -30,7 +30,7 @@ class Register_Push_Notification(APIView):
             )
             if fcm:
                 return Response(
-                    {"status": 400, "msg": "Token already exists"},
+                    {"msg": "Token already exists"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             device = get_if_exists(
@@ -38,7 +38,7 @@ class Register_Push_Notification(APIView):
             )
             if device:
                 return Response(
-                    {"status": 400, "msg": "Device already exists"},
+                    {"msg": "Device already exists"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -48,11 +48,11 @@ class Register_Push_Notification(APIView):
                 type=request.data["type"],
                 device_id=request.data["device_id"],
             )
-            return Response({"status": 200})
+            return Response({"msg": "ok"})
         except Exception as e:
             print(str(e))
             return Response(
-                {"status": 500, "msg": "Server error"},
+                {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -66,7 +66,7 @@ class Test_Push_Notification_Sync(APIView):
 
             if not user:
                 return Response(
-                    {"status": 400, "msg": "Not Authorized"},
+                    {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -75,6 +75,6 @@ class Test_Push_Notification_Sync(APIView):
                 title=request.data["title"],
                 body=request.data["body"],
             )
-            return Response({"status": 200})
+            return Response({"msg": "ok"})
         except Exception as e:
             print(str(e))
