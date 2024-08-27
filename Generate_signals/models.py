@@ -18,7 +18,7 @@ class Trade_History(models.Model):
     result = models.CharField(
         max_length=15, choices={("profit", "profit"), ("loss", "loss")}, blank=True
     )
-    balance = models.BigIntegerField(default=0)
+    balance = models.DecimalField(decimal_places=2, max_digits=30)
 
     def __str__(self):
         return str(self.id)

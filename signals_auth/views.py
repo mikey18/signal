@@ -34,7 +34,7 @@ class RefreshTokenView(APIView):
     def get(self, request):
         user = get_if_exists(User, id=request.user_id)
         if not user:
-             return Response(
+            return Response(
                 {
                     "msg": "Invalid auth",
                 },
