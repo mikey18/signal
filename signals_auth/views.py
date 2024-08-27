@@ -31,7 +31,7 @@ load_dotenv()
 
 class RefreshTokenView(APIView):
     @method_decorator(jwt_required(token_type="refresh"))
-    def get(self, request):
+    def post(self, request):
         user = get_if_exists(User, id=request.user_id)
         if not user:
             return Response(
@@ -106,11 +106,20 @@ class LoginAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         update_last_login(None, user)
-        devices.login_time = str(datetime.now(timezone.utc))
-        devices.logged_in = True
-        devices.save()
-
-        return Response(get_tokens(user))
+        response = Response()
+        tokens = get_tokens(user)
+        if request.data["platform"] == "web":
+            response.data = {"access": tokens["access"]}
+            response.set_cookie(
+                key="refresh",
+                value=tokens["refresh"],
+                httponly=True,
+                samesite="None",
+                secure=True,  # Use True in production with HTTPS
+            )
+        else:
+            response.data = tokens
+        return response
 
 
 @method_decorator(gzip_page, name="dispatch")
