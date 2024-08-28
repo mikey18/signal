@@ -34,12 +34,13 @@ class RefreshTokenView(APIView):
     def post(self, request):
         user = get_if_exists(User, id=request.user_id)
         if not user:
-            return Response(
-                {
-                    "msg": "Invalid auth",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            response_data = {
+                "msg": "Invalid auth",
+            }
+            response = Response(response_data, status=status.HTTP_403_FORBIDDEN)
+            if request.data["platform"] == "web":
+                response.delete_cookie("refresh")
+            return response
         return Response(
             {
                 "access": access_refresh_token(user, "access"),
@@ -322,21 +323,23 @@ class LogoutAPIView(APIView):
         try:
             user = get_if_exists(User, id=request.user_id)
             device = get_if_exists(
-                Notification_Devices, device_id=request["device_id"], user=user
+                Notification_Devices, device_id=request.data["device_id"], user=user
             )
-
             if not user or not device:
                 return Response(
                     {"msg": "Not Authorized"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            device.delete()
+
+            if device:
+                device.delete()
+
             response = Response({"msg": "ok"})
             if request.data["platform"] == "web":
                 response.delete_cookie("refresh")
             return response
         except Exception as e:
-            print(str(e))
+            print(e)
             return Response(
                 {"msg": "Server error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

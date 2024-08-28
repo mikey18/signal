@@ -45,14 +45,12 @@ def access_refresh_token(user, action):
 def jwt_required(token_type):
     def decorator(view_func):
         def wrapped_view(request, *args, **kwargs):
-            if token_type == "refresh":
-                if request.data["platform"] == "web":
-                    token = request.COOKIES.get("refresh")  # Extract token from cookie
-                else:
-                    token = request.META.get("HTTP_AUTHORIZATION")
+            if token_type == "refresh" and request.data["platform"] == "web":
+                token = request.COOKIES.get("refresh")  # Extract token from cookie
             else:
-                token = request.META.get("HTTP_AUTHORIZATION")            
-            
+                token = request.META.get("HTTP_AUTHORIZATION")
+
+
             if not token:
                 return JsonResponse({"msg": "Invalid auth"}, status=403)
 

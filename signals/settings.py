@@ -29,8 +29,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 ALLOWED_HOSTS = [
-    "relltrader"
-    # "localhost",
+    os.getenv("ALLOWED_HOST")
     # "relltrader.com",
     # "www.relltrader.com",
     #  "86.48.6.77"
