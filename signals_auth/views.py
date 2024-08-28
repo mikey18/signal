@@ -331,7 +331,10 @@ class LogoutAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             device.delete()
-            return Response({"msg": "ok"})
+            response = Response({"msg": "ok"})
+            if request.data["platform"] == "web":
+                response.delete_cookie("refresh")
+            return response
         except Exception as e:
             print(str(e))
             return Response(
