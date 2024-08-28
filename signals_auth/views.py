@@ -317,7 +317,7 @@ class UpdateUser(APIView):
 
 @method_decorator(gzip_page, name="dispatch")
 class LogoutAPIView(APIView):
-    @method_decorator(jwt_required(token_type="access"))
+    @method_decorator(jwt_required(token_type="refresh"))
     def post(self, request):
         try:
             user = get_if_exists(User, id=request.user_id)
@@ -331,7 +331,7 @@ class LogoutAPIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             device.delete()
-            return Response({"msg": "Logout Successful"})
+            return Response({"msg": "ok"})
         except Exception as e:
             print(str(e))
             return Response(
