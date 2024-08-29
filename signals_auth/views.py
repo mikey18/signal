@@ -159,8 +159,21 @@ class VerifyOTP(APIView):
                 )
 
             user.is_verified = True
-            user.save()
-            return Response(get_tokens(user))
+            user.save()        
+            response = Response()
+            tokens = get_tokens(user)
+            if request.data["platform"] == "web":
+                response.data = {"access": tokens["access"]}
+                response.set_cookie(
+                    key="refresh",
+                    value=tokens["refresh"],
+                    httponly=True,
+                    samesite="None",
+                    secure=True,  # Use True in production with HTTPS
+                )
+            else:
+                response.data = tokens
+            return response
         except Exception as e:
             print(str(e))
             return Response(
