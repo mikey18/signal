@@ -30,7 +30,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = False
 ALLOWED_HOSTS = [
     os.getenv("ALLOWED_HOST"),
-    os.getenv("ALLOWED_HOST2")
     # "relltrader.com",
     # "www.relltrader.com",
     #  "86.48.6.77"
@@ -185,8 +184,9 @@ EMAIL_USE_SSL = True
 
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://relltrader.com",
+    # "http://relltrader.com",
     "https://relltrader.com",
+    "https://www.relltrader.com",
 ]
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
