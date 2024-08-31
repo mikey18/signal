@@ -193,6 +193,9 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CORS_ALLOWED_ORIGINS = [
     "https://relltrader.com",
 ]
+CORS_ORIGIN_WHITELIST = [
+    "https://relltrader.com",
+]
 
 # CELERY CONFIGURATIONS
 CELERY_BROKER_URL = "redis://localhost:6379/0"

@@ -159,7 +159,7 @@ class VerifyOTP(APIView):
                 )
 
             user.is_verified = True
-            user.save()        
+            user.save()
             response = Response()
             tokens = get_tokens(user)
             if request.data["platform"] == "web":

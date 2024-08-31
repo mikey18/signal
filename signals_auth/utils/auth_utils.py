@@ -50,7 +50,6 @@ def jwt_required(token_type):
             else:
                 token = request.META.get("HTTP_AUTHORIZATION")
 
-
             if not token:
                 return JsonResponse({"msg": "Invalid auth"}, status=403)
 
