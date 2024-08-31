@@ -184,7 +184,6 @@ EMAIL_USE_SSL = True
 
 
 CSRF_TRUSTED_ORIGINS = [
-    # "http://relltrader.com",
     "https://relltrader.com",
     "https://www.relltrader.com",
 ]
@@ -192,9 +191,11 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CORS_ALLOWED_ORIGINS = [
     "https://relltrader.com",
+    "https://www.relltrader.com",
 ]
 CORS_ORIGIN_WHITELIST = [
     "https://relltrader.com",
+    "https://www.relltrader.com",
 ]
 
 # CELERY CONFIGURATIONS
