@@ -1,5 +1,5 @@
 daphne = daphne signals.asgi:application --port=$PORT --bind 0.0.0.0
-uvicorn= uvicorn signals.asgi:application --header "Server: ReT/z"
+uvicorn= uvicorn signals.asgi:application --header "Server: ReT/z" --port 8002 --workers 4
 celery = celery -A signals.celery worker --loglevel=info -E (this works is for the original prefork and can do multiple tasks at a time (compatible with linux and macOS))
 celery = celery -A signals.celery worker --pool=solo --loglevel=info -E (this works for one task at a time)
 celery = celery -A signals.celery worker --pool=threads --loglevel=info -E -c 8 (this works for multiple tasks at a time, for windows compatibility but not as good as prefork)
