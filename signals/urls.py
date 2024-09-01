@@ -19,6 +19,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from signals_auth.views import custom_404_view
+
+handler404 = custom_404_view
 
 name = "Rell Trader"
 admin.site.site_header = name

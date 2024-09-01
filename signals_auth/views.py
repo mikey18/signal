@@ -19,14 +19,15 @@ from Generate_signals.tasks import signal_trade_task
 from django.contrib.auth.models import update_last_login
 from notification.models import Notification_Devices
 import MetaTrader5 as mt5
-from dotenv import load_dotenv
 from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
 from utils.email import HandleEmail
 from django.contrib.auth.hashers import check_password
+from django.shortcuts import render
 
 
-load_dotenv()
+def custom_404_view(request, exception):
+    return render(request, '404.html', status=404)
 
 
 class RefreshTokenView(APIView):
