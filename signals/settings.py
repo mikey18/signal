@@ -30,8 +30,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = False
 ALLOWED_HOSTS = [
     os.getenv("ALLOWED_HOST"),
-    # "relltrader.com",
-    # "www.relltrader.com",
+    "relltrader.com",
+    "www.relltrader.com",
     #  "86.48.6.77"
 ]
 
