@@ -72,7 +72,7 @@ class Trade_History_Calculation_API(APIView):
 
 class CustomCursorPagination(CursorPagination):
     ordering = "-created_at"
-    page_size = 1
+    page_size = 5
 
 
 @method_decorator(gzip_page, name="dispatch")
