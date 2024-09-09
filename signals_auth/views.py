@@ -92,7 +92,7 @@ class LoginAPIView(APIView):
                     "status": False,
                     "msg": "User not verified",
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_406_NOT_ACCEPTABLE,
             )
 
         devices = get_if_exists(
@@ -105,7 +105,7 @@ class LoginAPIView(APIView):
                     "status": False,
                     "msg": "Device not registered",
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_406_NOT_ACCEPTABLE,
             )
         update_last_login(None, user)
         response = Response()
